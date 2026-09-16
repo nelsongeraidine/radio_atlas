@@ -90,3 +90,26 @@ Este arquivo registra as melhorias e funcionalidades planejadas para as próxima
   - Adicionar função `removeRecentSearch(term: string)` no hook `useRecentSearches`.
   - Exibir ícone sutil de `X` ao lado de cada item em `Recent searches`.
   - Clicar no `X` remove apenas aquele item sem executar a busca.
+
+---
+
+## 6. Alternância de Visualização do Mapa: 2D (Plano) / 3D (Globo Esférico)
+
+- **Objetivo**: Permitir que o usuário alterne entre a visão clássica de mapa plano (Mercator) e a projeção de globo esférico 3D (estilo Terra no espaço sideral), aumentando a imersão geográfica.
+- **Arquivos afetados**:
+  - `components/WorldMap.tsx`
+  - `app/page.tsx`
+  - `components/WorldMap.test.tsx`
+- **Abordagem técnica recomendada**:
+  - Utilizar a projeção nativa de globo do **MapLibre GL v4** (`setProjection({ type: "globe" })`), aproveitando a biblioteca já instalada sem adicionar peso ao bundle.
+- **Especificações técnicas**:
+  - **Controle de UI**: Adicionar seletor discreto `[ 2D | 3D ]` com a classe `TECHNICAL_TEXT_CLASS` no canto do mapa (sobreposto, próximo aos controles de zoom/localização).
+  - **Transição de projeção**:
+    - Modo 2D: `map.setProjection({ type: 'mercator' })` com `pitch: 0` e `bearing: 0`.
+    - Modo 3D: `map.setProjection({ type: 'globe' })` com suporte a inclinação de câmera (`pitch: 45`) e rotação livre da Terra com o botão direito do mouse.
+  - **Compatibilidade total**:
+    - Preservar os marcadores de cidades existentes (`CityMarker`).
+    - Manter a animação cinematográfica `flyTo` ao clicar em uma cidade ou ao usar o shuffle ("Take me somewhere").
+    - Não interromper o áudio ou o estado de seleção durante a troca de projeção.
+- **Testes**:
+  - Testar toggle de projeção chamando `setProjection` com `globe` e `mercator` no `WorldMap.test.tsx`.
