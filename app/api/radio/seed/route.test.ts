@@ -40,4 +40,36 @@ describe("GET /api/radio/seed", () => {
       { city: "Paris", countryCode: "FR", countryName: "France", lat: 48.8566, lon: 2.3522, stationCount: 12 },
     ]);
   });
+
+  it("returns cached data on second call within TTL window, skipping API calls", async () => {
+    // Reset modules and mocks once at the start, then keep the same module instance for both calls
+    vi.resetModules();
+    getStateStationCount.mockReset();
+    getStateStationCount.mockImplementation(async (countryCode: string) =>
+      countryCode === "FR" ? 12 : 0
+    );
+
+    const { GET } = await import("./route");
+
+    // First call - should call getStateStationCount for each city
+    const res1 = await GET();
+    const body1 = await res1.json();
+    expect(body1).toEqual([
+      { city: "Paris", countryCode: "FR", countryName: "France", lat: 48.8566, lon: 2.3522, stationCount: 12 },
+    ]);
+
+    // Track call count after first GET
+    const callCountAfterFirstGet = getStateStationCount.mock.calls.length;
+    expect(callCountAfterFirstGet).toBe(2); // Called once per city (FR and XX)
+
+    // Second call - should return cached data without calling getStateStationCount again
+    const res2 = await GET();
+    const body2 = await res2.json();
+    expect(body2).toEqual([
+      { city: "Paris", countryCode: "FR", countryName: "France", lat: 48.8566, lon: 2.3522, stationCount: 12 },
+    ]);
+
+    // Verify mock was not called again - call count should remain the same
+    expect(getStateStationCount.mock.calls.length).toBe(callCountAfterFirstGet);
+  });
 });
