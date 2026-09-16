@@ -232,7 +232,7 @@ Expected: PASS
 - [ ] **Step 13: Run build to verify the toolchain works end-to-end**
 
 Run: `pnpm build`
-Expected: builds successfully (there's no `app/page.tsx` yet from the scaffold's default — if `create-next-app` generated one, leave it in place; Task 9 replaces it).
+Expected: builds successfully (there's no `app/page.tsx` yet from the scaffold's default — if `create-next-app` generated one, leave it in place; Task 13 replaces it).
 
 - [ ] **Step 14: Commit**
 
