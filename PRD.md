@@ -1,6 +1,6 @@
 # PRD — Radio Atlas
 
-Instruções de engenharia (stack, arquitetura, convenções) em `CLAUDE.md`. Este arquivo cobre o que construir, o status atual e o roadmap do produto.
+Instruções de engenharia (stack, arquitetura, convenções) em `CLAUDE.md`. Backlog técnico e especificações de melhorias futuras em `todo.md`. Este arquivo cobre o que construir, o status atual e o roadmap do produto.
 
 ## 1. Visão geral
 
@@ -28,8 +28,8 @@ Webapp para descobrir e ouvir rádios ao vivo do mundo todo através de uma expe
 | **Detecção por Timezone** | ✅ Concluído | Saudação adaptativa no Onboarding baseada no fuso horário do visitante sem GPS. |
 | **Filtro de Qualidade de Áudio** | ✅ Concluído | Filtro por taxa de bitrate mínima (HQ ≥ 128 kbps) na listagem StationList com contagem dinâmica. |
 | **Histórico de Busca Recente** | ✅ Concluído | Memorização das últimas 6 consultas pesquisadas no Command Palette com atalho direto e botão de limpar. |
-| **Atalhos de Teclado no Player** | ⏳ Planejado | Barra de espaço para play/pause global, tecla M para mute e setas para estações. |
-| **Modo Mini-player Mobile** | ⏳ Planejado | Recolhimento do player em barra ultra-fina para expansão de tela do mapa no mobile. |
+| **Atalhos de Teclado no Player** | ⏳ Planejado | Barra de espaço para play/pause global, tecla M para mute e setas para estações (ver `todo.md`). |
+| **Modo Mini-player Mobile** | ⏳ Planejado | Recolhimento do player em barra ultra-fina para expansão de tela do mapa no mobile (ver `todo.md`). |
 
 ---
 
@@ -59,6 +59,7 @@ Interface premium, minimalista, cinematográfica, estilo app editorial de músic
 - **Ao selecionar localidade**:
   - Voo suave da câmera (`flyTo`);
   - **Controle LOCAL / COUNTRY**: toggle no topo da sidebar para alternar entre as estações da cidade selecionada e as estações populares de todo o país;
+  - **Filtro de Qualidade de Áudio**: toggle `HQ ONLY (≥128K)` para filtrar estações com qualidade de áudio superior com contagem em tempo real;
   - **Spotlight**: seleção das top 5 rádios locais prontas para tocar em 1 clique;
   - **StationList**: lista completa de estações reais com status, tags, bitrate e botão de favoritar.
 - **Deep links**: lê parâmetros da URL (`/?city=Paris&cc=FR` ou `/?cc=JP` ou `/?station=id`), voando até a localidade e iniciando a reprodução automaticamente.
@@ -108,6 +109,7 @@ Atalho `Ctrl+K` / `⌘K`:
 - Busca instantânea em cidades curadas (`data/cities.json`);
 - Busca instantânea na lista de países da Radio Browser;
 - Categoria **GENRES**: busca direta por estilos e tags (Jazz, Ambient, Electronic, Rock, Classical, etc.);
+- **Histórico de buscas recentes**: memoriza até 6 consultas em `localStorage`, permitindo reutilização com 1 clique ou limpeza em lote (`Clear`);
 - Navegação completa por teclado (setas para cima/baixo, Enter para selecionar, Esc para fechar).
 
 ---

@@ -1,6 +1,6 @@
 # Radio Atlas — Instruções de engenharia
 
-Especificação de produto e status de implementação em `PRD.md`. Este arquivo cobre as diretrizes de arquitetura, convenções e padrões técnicos para o desenvolvimento.
+Especificação de produto e status de implementação em `PRD.md`. Backlog técnico de melhorias futuras em `todo.md`. Este arquivo cobre as diretrizes de arquitetura, convenções e padrões técnicos para o desenvolvimento.
 
 ## Stack obrigatória
 
