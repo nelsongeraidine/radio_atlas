@@ -40,6 +40,7 @@ describe("WorldMap", () => {
     render(<WorldMap cities={cities} onSelectCity={vi.fn()} />);
     expect(markerInstances).toHaveLength(1);
     expect(markerInstances[0].setLngLat).toHaveBeenCalledWith([2.3522, 48.8566]);
+    expect(markerInstances[0].el.getAttribute("aria-label")).toBe("Paris, France");
   });
 
   it("calls onSelectCity when a marker is clicked", async () => {

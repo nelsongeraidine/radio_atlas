@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { Map as MapLibreMap, Marker as MapLibreMarker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { CityMarker } from "@/lib/radio-api/types";
+import { formatCityCountry } from "@/lib/format";
 
 interface WorldMapProps {
   cities: CityMarker[];
@@ -42,6 +43,7 @@ export function WorldMap({ cities, onSelectCity }: WorldMapProps) {
       const el = document.createElement("button");
       el.type = "button";
       el.setAttribute("data-testid", `city-marker-${city.city}`);
+      el.setAttribute("aria-label", formatCityCountry(city.city, city.countryName));
       el.className = "h-2 w-2 rounded-full bg-white/80";
       el.addEventListener("click", () => onSelectCity(city));
       return new MapLibreMarker({ element: el }).setLngLat([city.lon, city.lat]).addTo(map);
