@@ -7,7 +7,7 @@ import type { Station } from "@/lib/radio-api/types";
 
 interface StationListProps {
   countryCode: string | null;
-  city: string | null;
+  city?: string | null;
   nowPlayingId: string | null;
   onSelectStation: (station: Station) => void;
 }
@@ -15,7 +15,7 @@ interface StationListProps {
 export function StationList({ countryCode, city, nowPlayingId, onSelectStation }: StationListProps) {
   const { data, isLoading, isError } = useStations(countryCode, city);
 
-  if (!countryCode || !city) {
+  if (!countryCode) {
     return null;
   }
 

@@ -16,11 +16,25 @@ describe("StationList", () => {
     vi.stubGlobal("fetch", fetchMock);
   });
 
-  it("renders nothing when no city is selected", () => {
+  it("renders nothing when no country is selected", () => {
     const { container } = renderWithClient(
       <StationList countryCode={null} city={null} nowPlayingId={null} onSelectStation={vi.fn()} />
     );
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("fetches country-wide stations when city is omitted", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        { id: "9", name: "National Radio", country: "Japan", countryCode: "JP", tags: [], votes: 1 },
+      ],
+    });
+    renderWithClient(<StationList countryCode="JP" nowPlayingId={null} onSelectStation={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText("National Radio")).toBeInTheDocument());
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain("countryCode=JP");
+    expect(url).not.toContain("city=");
   });
 
   it("shows a skeleton while loading, then real stations", async () => {
