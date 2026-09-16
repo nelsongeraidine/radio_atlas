@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { flushSync } from "react-dom";
 import { Pause, Play, Volume2 } from "lucide-react";
 import type { Station } from "@/lib/radio-api/types";
 import { TECHNICAL_TEXT_CLASS, formatBitrate } from "@/lib/format";
@@ -35,24 +34,20 @@ export function RadioPlayer({ station }: RadioPlayerProps) {
     setStatus("tuning");
     audio.src = url;
     audio.volume = volume;
-    HTMLMediaElement.prototype.play.call(audio)?.catch(() => setStatus("signal_lost"));
+    audio.play()?.catch(() => setStatus("signal_lost"));
   }
 
   function handleError() {
-    flushSync(() => {
-      if (station?.fallbackUrl && !usingFallback) {
-        setUsingFallback(true);
-        tune(station.fallbackUrl);
-        return;
-      }
-      setStatus("signal_lost");
-    });
+    if (station?.fallbackUrl && !usingFallback) {
+      setUsingFallback(true);
+      tune(station.fallbackUrl);
+      return;
+    }
+    setStatus("signal_lost");
   }
 
   function handleCanPlay() {
-    flushSync(() => {
-      setStatus("tuned_in");
-    });
+    setStatus("tuned_in");
   }
 
   function handleTryAgain() {
