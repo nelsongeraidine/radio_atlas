@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 vi.mock("maplibre-gl", () => ({
@@ -22,11 +22,19 @@ const fetchMock = vi.fn();
 describe("ExplorePage", () => {
   beforeEach(() => {
     fetchMock.mockReset();
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => [
-        { city: "Paris", countryCode: "FR", countryName: "France", lat: 48.8566, lon: 2.3522, stationCount: 12 },
-      ],
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.includes("/api/radio/seed")) {
+        return {
+          ok: true,
+          json: async () => [
+            { city: "Paris", countryCode: "FR", countryName: "France", lat: 48.8566, lon: 2.3522, stationCount: 12 },
+          ],
+        };
+      }
+      if (url.includes("/api/radio/countries")) {
+        return { ok: true, json: async () => [{ name: "Japan", countryCode: "JP", stationCount: 80 }] };
+      }
+      return { ok: true, json: async () => [] };
     });
     vi.stubGlobal("fetch", fetchMock);
     vi.stubGlobal(
@@ -90,5 +98,46 @@ describe("ExplorePage", () => {
     );
 
     expect(await screen.findByTestId("city-markers-error")).toBeInTheDocument();
+  });
+
+  it("opens the search palette when the header search button is clicked", async () => {
+    const { default: ExplorePage } = await import("./page");
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <ExplorePage />
+      </QueryClientProvider>
+    );
+    expect(screen.queryByTestId("global-search-overlay")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("open-search"));
+    expect(screen.getByTestId("global-search-overlay")).toBeInTheDocument();
+  });
+
+  it("opens the search palette with the Ctrl+K shortcut", async () => {
+    const { default: ExplorePage } = await import("./page");
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <ExplorePage />
+      </QueryClientProvider>
+    );
+    fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+    expect(screen.getByTestId("global-search-overlay")).toBeInTheDocument();
+  });
+
+  it("selecting a country in search shows its name and a country-wide station list", async () => {
+    const { default: ExplorePage } = await import("./page");
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <ExplorePage />
+      </QueryClientProvider>
+    );
+    fireEvent.click(screen.getByTestId("open-search"));
+    fireEvent.change(screen.getByTestId("global-search-input"), { target: { value: "Japan" } });
+    await waitFor(() => expect(screen.getByTestId("global-search-result-country")).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId("global-search-result-country"));
+    expect(screen.getByText("Japan")).toBeInTheDocument();
+    expect(screen.queryByTestId("global-search-overlay")).not.toBeInTheDocument();
   });
 });
