@@ -6,12 +6,6 @@ export interface RawCountry {
   stationcount: number;
 }
 
-export interface RawState {
-  name: string;
-  country: string;
-  stationcount: number;
-}
-
 export interface RawStation {
   stationuuid: string;
   name: string;

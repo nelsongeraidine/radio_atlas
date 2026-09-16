@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 vi.mock("maplibre-gl", () => ({
   Map: class {
     remove = vi.fn();
+    on = vi.fn();
+    getLayer = vi.fn().mockReturnValue(undefined);
+    setLayoutProperty = vi.fn();
   },
   Marker: class {
     setLngLat = vi.fn().mockReturnThis();

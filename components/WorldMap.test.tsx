@@ -3,10 +3,16 @@ import { render } from "@testing-library/react";
 import type { CityMarker } from "@/lib/radio-api/types";
 
 const markerInstances: { setLngLat: ReturnType<typeof vi.fn>; addTo: ReturnType<typeof vi.fn>; remove: ReturnType<typeof vi.fn>; el: HTMLElement }[] = [];
+const mapInstances: FakeMap[] = [];
 
 class FakeMap {
   remove = vi.fn();
-  constructor(public options: unknown) {}
+  on = vi.fn();
+  getLayer = vi.fn().mockReturnValue(undefined);
+  setLayoutProperty = vi.fn();
+  constructor(public options: unknown) {
+    mapInstances.push(this);
+  }
 }
 
 class FakeMarker {
@@ -33,6 +39,7 @@ const cities: CityMarker[] = [
 describe("WorldMap", () => {
   beforeEach(() => {
     markerInstances.length = 0;
+    mapInstances.length = 0;
   });
 
   it("creates a marker per city at the correct coordinates", async () => {
@@ -49,5 +56,20 @@ describe("WorldMap", () => {
     render(<WorldMap cities={cities} onSelectCity={onSelectCity} />);
     markerInstances[0].el.click();
     expect(onSelectCity).toHaveBeenCalledWith(cities[0]);
+  });
+
+  it("hides basemap place labels on load so they don't collide with city markers", async () => {
+    const { WorldMap } = await import("./WorldMap");
+    render(<WorldMap cities={cities} onSelectCity={vi.fn()} />);
+
+    const mapInstance = mapInstances[0];
+    expect(mapInstance.on).toHaveBeenCalledWith("load", expect.any(Function));
+    const loadHandler = mapInstance.on.mock.calls[0][1] as () => void;
+
+    mapInstance.getLayer.mockReturnValue({});
+    loadHandler();
+
+    expect(mapInstance.setLayoutProperty).toHaveBeenCalledWith("place_city_r6", "visibility", "none");
+    expect(mapInstance.setLayoutProperty).toHaveBeenCalledWith("place_town", "visibility", "none");
   });
 });

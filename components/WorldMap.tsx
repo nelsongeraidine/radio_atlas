@@ -11,7 +11,26 @@ interface WorldMapProps {
   onSelectCity: (city: CityMarker) => void;
 }
 
-const STYLE_URL = "https://demotiles.maplibre.org/style.json";
+const STYLE_URL = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+
+// Basemap place/POI labels compete visually with our own city markers (a "Berlin" label
+// rendered right on top of our marker reads as a single white blob at city zoom levels).
+// Country/state/continent/water labels stay for orientation; only city-and-finer labels go.
+const HIDDEN_LAYER_IDS = [
+  "place_hamlet",
+  "place_suburbs",
+  "place_villages",
+  "place_town",
+  "place_city_r6",
+  "place_city_r5",
+  "place_city_dot_r7",
+  "place_city_dot_r4",
+  "place_city_dot_r2",
+  "place_city_dot_z7",
+  "place_capital_dot_z7",
+  "poi_stadium",
+  "poi_park",
+];
 
 export function WorldMap({ cities, onSelectCity }: WorldMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -25,9 +44,16 @@ export function WorldMap({ cities, onSelectCity }: WorldMapProps) {
       style: STYLE_URL,
       center: [0, 20],
       zoom: 1.5,
-      attributionControl: false,
+      attributionControl: { compact: true },
     });
     const map = mapRef.current;
+    map.on("load", () => {
+      for (const layerId of HIDDEN_LAYER_IDS) {
+        if (map.getLayer(layerId)) {
+          map.setLayoutProperty(layerId, "visibility", "none");
+        }
+      }
+    });
     return () => {
       map.remove();
       mapRef.current = null;
@@ -44,7 +70,8 @@ export function WorldMap({ cities, onSelectCity }: WorldMapProps) {
       el.type = "button";
       el.setAttribute("data-testid", `city-marker-${city.city}`);
       el.setAttribute("aria-label", formatCityCountry(city.city, city.countryName));
-      el.className = "h-2 w-2 rounded-full bg-white/80";
+      el.className =
+        "h-2.5 w-2.5 rounded-full bg-white shadow-[0_0_6px_2px_rgba(255,255,255,0.6)] transition-transform hover:scale-150";
       el.addEventListener("click", () => onSelectCity(city));
       return new MapLibreMarker({ element: el }).setLngLat([city.lon, city.lat]).addTo(map);
     });

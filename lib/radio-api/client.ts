@@ -1,5 +1,5 @@
 import { getMirrors, invalidateMirrorCache } from "./mirrors";
-import type { Country, RawCountry, RawState, RawStation, Station } from "./types";
+import type { Country, RawCountry, RawStation, Station } from "./types";
 
 const REQUEST_TIMEOUT_MS = 8000;
 
@@ -41,13 +41,15 @@ export async function getCountries(): Promise<Country[]> {
     .map((c) => ({ name: c.name, countryCode: c.iso_3166_1, stationCount: c.stationcount }));
 }
 
-export async function getStateStationCount(countryName: string, stateName: string): Promise<number> {
-  const raw = await fetchFromMirrors<RawState[]>(
-    `/json/states/${encodeURIComponent(countryName)}/${encodeURIComponent(stateName)}`
-  );
-  const exact = raw.filter((s) => s.name.toLowerCase() === stateName.toLowerCase());
-  const matches = exact.length > 0 ? exact : raw;
-  return matches.reduce((sum, s) => sum + s.stationcount, 0);
+export async function getStateStationCount(countryCode: string, stateName: string): Promise<number> {
+  const params = new URLSearchParams({
+    countrycode: countryCode,
+    state: stateName,
+    hidebroken: "true",
+    limit: "60",
+  });
+  const raw = await fetchFromMirrors<RawStation[]>(`/json/stations/search?${params.toString()}`);
+  return raw.length;
 }
 
 export async function getStationsByCountryState(countryCode: string, stateName: string): Promise<Station[]> {

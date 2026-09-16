@@ -21,8 +21,8 @@ describe("GET /api/radio/seed", () => {
   });
 
   it("returns only cities with at least one real station", async () => {
-    getStateStationCount.mockImplementation(async (countryName: string) =>
-      countryName === "France" ? 12 : 0
+    getStateStationCount.mockImplementation(async (countryCode: string) =>
+      countryCode === "FR" ? 12 : 0
     );
     const { GET } = await import("./route");
     const res = await GET();
@@ -33,8 +33,8 @@ describe("GET /api/radio/seed", () => {
   });
 
   it("excludes a city whose lookup failed, without failing the whole request or caching it as a real zero", async () => {
-    getStateStationCount.mockImplementation(async (countryName: string) => {
-      if (countryName === "France") return 12;
+    getStateStationCount.mockImplementation(async (countryCode: string) => {
+      if (countryCode === "FR") return 12;
       throw new Error("mirror down");
     });
     const { GET } = await import("./route");
@@ -89,8 +89,8 @@ describe("GET /api/radio/seed", () => {
     // Reset modules and mocks once at the start, then keep the same module instance for both calls
     vi.resetModules();
     getStateStationCount.mockReset();
-    getStateStationCount.mockImplementation(async (countryName: string) =>
-      countryName === "France" ? 12 : 0
+    getStateStationCount.mockImplementation(async (countryCode: string) =>
+      countryCode === "FR" ? 12 : 0
     );
 
     const { GET } = await import("./route");

@@ -39,7 +39,7 @@ export async function GET() {
   const entries = cities as CityEntry[];
   const outcomes = await mapWithConcurrency<CityEntry, CityOutcome>(entries, CONCURRENCY, async (entry) => {
     try {
-      const stationCount = await getStateStationCount(entry.countryName, entry.city);
+      const stationCount = await getStateStationCount(entry.countryCode, entry.city);
       return { entry, stationCount, failed: false };
     } catch {
       return { entry, stationCount: 0, failed: true };

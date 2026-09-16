@@ -31,17 +31,21 @@ describe("client", () => {
     expect(countries).toEqual([{ name: "France", countryCode: "FR", stationCount: 120 }]);
   });
 
-  it("getStateStationCount sums exact-name matches only", async () => {
+  it("getStateStationCount counts stations by country code, not country name", async () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => [
-        { name: "Paris", country: "France", stationcount: 5 },
-        { name: "Paris Region", country: "France", stationcount: 2 },
+        { stationuuid: "a", name: "Station A" },
+        { stationuuid: "b", name: "Station B" },
       ],
     });
     const { getStateStationCount } = await import("./client");
-    const count = await getStateStationCount("France", "Paris");
-    expect(count).toBe(5);
+    const count = await getStateStationCount("US", "Los Angeles");
+    expect(count).toBe(2);
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain("countrycode=US");
+    expect(url).toContain("state=Los+Angeles");
+    expect(url).not.toContain("/json/states/");
   });
 
   it("getStationsByCountryState normalizes raw stations", async () => {
