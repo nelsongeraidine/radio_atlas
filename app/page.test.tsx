@@ -3,15 +3,13 @@ import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 vi.mock("maplibre-gl", () => ({
-  default: {
-    Map: class {
-      remove = vi.fn();
-    },
-    Marker: class {
-      setLngLat = vi.fn().mockReturnThis();
-      addTo = vi.fn().mockReturnThis();
-      remove = vi.fn();
-    },
+  Map: class {
+    remove = vi.fn();
+  },
+  Marker: class {
+    setLngLat = vi.fn().mockReturnThis();
+    addTo = vi.fn().mockReturnThis();
+    remove = vi.fn();
   },
 }));
 vi.mock("maplibre-gl/dist/maplibre-gl.css", () => ({}));

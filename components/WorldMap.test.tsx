@@ -21,7 +21,8 @@ class FakeMarker {
 }
 
 vi.mock("maplibre-gl", () => ({
-  default: { Map: FakeMap, Marker: FakeMarker },
+  Map: FakeMap,
+  Marker: FakeMarker,
 }));
 vi.mock("maplibre-gl/dist/maplibre-gl.css", () => ({}));
 

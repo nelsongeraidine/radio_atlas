@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import maplibregl from "maplibre-gl";
+import { Map as MapLibreMap, Marker as MapLibreMarker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { CityMarker } from "@/lib/radio-api/types";
 
@@ -14,12 +14,12 @@ const STYLE_URL = "https://demotiles.maplibre.org/style.json";
 
 export function WorldMap({ cities, onSelectCity }: WorldMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
-  const markersRef = useRef<maplibregl.Marker[]>([]);
+  const mapRef = useRef<MapLibreMap | null>(null);
+  const markersRef = useRef<MapLibreMarker[]>([]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    mapRef.current = new maplibregl.Map({
+    mapRef.current = new MapLibreMap({
       container: containerRef.current,
       style: STYLE_URL,
       center: [0, 20],
@@ -44,7 +44,7 @@ export function WorldMap({ cities, onSelectCity }: WorldMapProps) {
       el.setAttribute("data-testid", `city-marker-${city.city}`);
       el.className = "h-2 w-2 rounded-full bg-white/80";
       el.addEventListener("click", () => onSelectCity(city));
-      return new maplibregl.Marker({ element: el }).setLngLat([city.lon, city.lat]).addTo(map);
+      return new MapLibreMarker({ element: el }).setLngLat([city.lon, city.lat]).addTo(map);
     });
   }, [cities, onSelectCity]);
 
