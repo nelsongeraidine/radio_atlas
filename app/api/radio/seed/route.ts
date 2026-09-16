@@ -18,7 +18,7 @@ export async function GET() {
   const results = await Promise.all(
     entries.map(async (entry) => {
       try {
-        const stationCount = await getStateStationCount(entry.countryCode, entry.city);
+        const stationCount = await getStateStationCount(entry.countryName, entry.city);
         return { ...entry, stationCount } satisfies CityMarker;
       } catch {
         return { ...entry, stationCount: 0 } satisfies CityMarker;

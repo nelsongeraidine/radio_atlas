@@ -41,9 +41,9 @@ export async function getCountries(): Promise<Country[]> {
     .map((c) => ({ name: c.name, countryCode: c.iso_3166_1, stationCount: c.stationcount }));
 }
 
-export async function getStateStationCount(countryCode: string, stateName: string): Promise<number> {
+export async function getStateStationCount(countryName: string, stateName: string): Promise<number> {
   const raw = await fetchFromMirrors<RawState[]>(
-    `/json/states/${encodeURIComponent(countryCode)}/${encodeURIComponent(stateName)}`
+    `/json/states/${encodeURIComponent(countryName)}/${encodeURIComponent(stateName)}`
   );
   const exact = raw.filter((s) => s.name.toLowerCase() === stateName.toLowerCase());
   const matches = exact.length > 0 ? exact : raw;

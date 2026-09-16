@@ -40,7 +40,7 @@ describe("client", () => {
       ],
     });
     const { getStateStationCount } = await import("./client");
-    const count = await getStateStationCount("FR", "Paris");
+    const count = await getStateStationCount("France", "Paris");
     expect(count).toBe(5);
   });
 
