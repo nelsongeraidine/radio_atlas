@@ -65,6 +65,31 @@ export async function getStationsByCountryState(countryCode: string, stateName: 
   return raw.map(normalizeStation);
 }
 
+export async function searchStationsByName(query: string): Promise<Station[]> {
+  const params = new URLSearchParams({
+    name: query,
+    hidebroken: "true",
+    order: "clickcount",
+    reverse: "true",
+    limit: "8",
+  });
+  const raw = await fetchFromMirrors<RawStation[]>(`/json/stations/search?${params.toString()}`);
+  return raw.map(normalizeStation);
+}
+
+export async function getStationsByCountry(countryCode: string): Promise<Station[]> {
+  const params = new URLSearchParams({
+    countrycode: countryCode,
+    hidebroken: "true",
+    order: "clickcount",
+    reverse: "true",
+    limit: "60",
+  });
+  const raw = await fetchFromMirrors<RawStation[]>(`/json/stations/search?${params.toString()}`);
+  return raw.map(normalizeStation);
+}
+
+
 function normalizeStation(raw: RawStation): Station {
   return {
     id: raw.stationuuid,

@@ -91,6 +91,84 @@ describe("client", () => {
     ]);
   });
 
+  it("searchStationsByName normalizes raw stations and caps at 8 results", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          stationuuid: "xyz-1",
+          name: "Jazz FM",
+          url: "http://stream.example/jazz",
+          url_resolved: "http://stream.example/jazz-resolved",
+          country: "France",
+          countrycode: "FR",
+          state: "",
+          language: "french",
+          tags: "jazz",
+          bitrate: 128,
+          codec: "MP3",
+          favicon: "",
+          votes: 5,
+          lastcheckok: 1,
+        },
+      ],
+    });
+    const { searchStationsByName } = await import("./client");
+    const stations = await searchStationsByName("jazz");
+    expect(stations).toEqual([
+      {
+        id: "xyz-1",
+        name: "Jazz FM",
+        url: "http://stream.example/jazz-resolved",
+        fallbackUrl: "http://stream.example/jazz",
+        country: "France",
+        countryCode: "FR",
+        state: undefined,
+        language: "french",
+        tags: ["jazz"],
+        bitrate: 128,
+        codec: "MP3",
+        favicon: undefined,
+        votes: 5,
+      },
+    ]);
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain("name=jazz");
+    expect(url).toContain("limit=8");
+  });
+
+  it("getStationsByCountry queries by countrycode only, with no state filter", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          stationuuid: "abc-9",
+          name: "National Radio",
+          url: "http://stream.example/national",
+          url_resolved: "http://stream.example/national",
+          country: "Japan",
+          countrycode: "JP",
+          state: "",
+          language: "japanese",
+          tags: "",
+          bitrate: 96,
+          codec: "AAC",
+          favicon: "",
+          votes: 10,
+          lastcheckok: 1,
+        },
+      ],
+    });
+    const { getStationsByCountry } = await import("./client");
+    const stations = await getStationsByCountry("JP");
+    expect(stations).toHaveLength(1);
+    expect(stations[0].countryCode).toBe("JP");
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain("countrycode=JP");
+    expect(url).not.toContain("state=");
+    expect(url).toContain("limit=60");
+  });
+
   it("falls back to the next mirror when the first one fails", async () => {
     fetchMock
       .mockRejectedValueOnce(new Error("network error"))
