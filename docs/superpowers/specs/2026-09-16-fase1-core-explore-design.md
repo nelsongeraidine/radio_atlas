@@ -35,19 +35,29 @@ Command palette/busca global, página Discover, Library (favoritos/histórico/pe
 
 CLAUDE.md deixava a porta aberta para globo 3D "se a performance permitir". Decisão: começar com MapLibre GL 2D. Motivo: sem token pago, tiles vetoriais fáceis de customizar para visual limpo (sem POI/estradas), menor risco técnico e de performance em mobile. Globo 3D fica como possível evolução visual de fase futura, não bloqueia a Fase 1.
 
+## ADR: dataset estático de coordenadas de cidade
+
+A Radio Browser API não tem conceito formal de "cidade": tem `country` (nativo, com `stationcount`) e um campo `state` (pensado para estado/província, mas na prática muitos operadores preenchem com nome de cidade). Nenhum dos dois vem com latitude/longitude de cidade.
+
+Decisão: empacotar `data/cities.json`, um dataset estático curado (~100-150 cidades principais do mundo, cobrindo os países mais relevantes na Radio Browser) com `{ city, countryCode, lat, lon }`. Isso serve só para posicionar o marcador no mapa — a contagem de estações exibida em cada marcador e toda a lista de estações continuam vindo 100% da Radio Browser (`/json/states/{country}` casado por nome de cidade/estado, depois `/json/stations/search?country=&state=`). Coordenada de cidade é fato geográfico objetivo, não é "dado de rádio" fictício, então não viola a regra de nunca inventar estação/bitrate/idioma/etc.
+
+Efeito colateral positivo: como o dataset é curado e pequeno, cumpre naturalmente a regra de "nunca renderizar milhares de marcadores simultâneos".
+
 ## Arquitetura
 
 ```
 app/
   page.tsx                    Explore (tela principal)
   api/radio/
-    seed/route.ts             países+cidades com contagem de estações (marcadores iniciais)
+    seed/route.ts             cidades (do dataset) casadas com contagem real de estações via Radio Browser
     stations/route.ts         estações por cidade/país (?country=&city=)
 lib/
   radio-api/
     mirrors.ts                DNS SRV lookup (dns.resolveSrv) + cache em memória (TTL 1h) + fallback ordenado
     client.ts                 fetch tipado contra o mirror ativo, timeout via AbortController, normalização de campos
     types.ts                  tipos TS das entidades (Station, Country, City)
+data/
+  cities.json                 dataset estático curado de cidades (city, countryCode, lat, lon)
 components/
   WorldMap.tsx
   CityOverlay.tsx
@@ -61,7 +71,7 @@ Princípio inegociável (CLAUDE.md): o client nunca fala com `radio-browser.info
 
 ## Fluxo de dados
 
-1. **Carga inicial**: `page.tsx` busca `/api/radio/seed` (países/cidades com contagem de estações, agregado e cacheado no servidor). `WorldMap` desenha só esses pontos agregados — nunca o catálogo inteiro.
+1. **Carga inicial**: `page.tsx` busca `/api/radio/seed`, que cruza `data/cities.json` (coordenadas) com `/json/states/{country}` da Radio Browser (contagem real por estado/cidade), cacheado no servidor. `WorldMap` desenha só esses pontos curados — nunca o catálogo inteiro.
 2. **Clique num marcador de cidade**: TanStack Query busca `/api/radio/stations?country=X&city=Y`. `CityOverlay`/`StationList` mostram skeleton discreto durante o carregamento.
 3. **Resultado chega**: `CityOverlay` mostra nome/país/contagem; `StationList` renderiza `StationCard`s com dados reais.
 4. **Clique em Play**: `RadioPlayer` cria o elemento de áudio e carrega o stream só agora (lazy load). Estado `TUNING…`.
