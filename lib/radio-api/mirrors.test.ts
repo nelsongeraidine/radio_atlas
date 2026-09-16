@@ -70,4 +70,21 @@ describe("mirrors", () => {
     await getMirrors();
     expect(resolveSrv).toHaveBeenCalledTimes(2);
   });
+
+  it("dedupes concurrent calls into a single DNS resolution", async () => {
+    let resolvePromise: (value: unknown) => void;
+    resolveSrv.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolvePromise = resolve;
+        })
+    );
+    const { getMirrors } = await import("./mirrors");
+    const callsPromise = Promise.all([getMirrors(), getMirrors(), getMirrors()]);
+    resolvePromise!([{ name: "de1.api.radio-browser.info", priority: 1, weight: 1, port: 443 }]);
+    const results = await callsPromise;
+    expect(resolveSrv).toHaveBeenCalledTimes(1);
+    expect(results[0]).toEqual(results[1]);
+    expect(results[1]).toEqual(results[2]);
+  });
 });
