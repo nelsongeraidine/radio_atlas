@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./mirrors", () => ({
   getMirrors: vi.fn(async () => [{ host: "mirror-a" }, { host: "mirror-b" }]),
@@ -12,6 +12,10 @@ describe("client", () => {
     vi.resetModules();
     fetchMock.mockReset();
     vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("getCountries filters out countries with zero stations and maps fields", async () => {
@@ -97,5 +101,32 @@ describe("client", () => {
     fetchMock.mockRejectedValue(new Error("network error"));
     const { getCountries } = await import("./client");
     await expect(getCountries()).rejects.toThrow();
+  });
+
+  it("aborts the request via AbortController after the 8s timeout elapses", async () => {
+    vi.useFakeTimers();
+    let capturedSignal: AbortSignal | undefined;
+    fetchMock.mockImplementation(
+      (_url: string, options: { signal: AbortSignal }) =>
+        new Promise((_resolve, reject) => {
+          capturedSignal = options.signal;
+          options.signal.addEventListener("abort", () => {
+            reject(new DOMException("Aborted", "AbortError"));
+          });
+        })
+    );
+    const { getCountries } = await import("./client");
+    const promise = getCountries();
+    // Attach the rejection assertion before advancing fake timers, so the
+    // eventual rejection is never briefly unhandled.
+    const assertion = expect(promise).rejects.toThrow();
+
+    // Advance past the 8s timeout for mirror-a, then mirror-b (sequential calls).
+    await vi.advanceTimersByTimeAsync(8000);
+    await vi.advanceTimersByTimeAsync(8000);
+
+    await assertion;
+    expect(capturedSignal?.aborted).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
