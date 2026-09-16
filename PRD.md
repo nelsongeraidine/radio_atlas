@@ -26,8 +26,10 @@ Webapp para descobrir e ouvir rádios ao vivo do mundo todo através de uma expe
 | **Responsividade Mobile** | ✅ Concluído | Layout adaptativo no smartphone: mapa superior, lista inferior com rolagem e player compacto. |
 | **Busca por Gêneros no Palette** | ✅ Concluído | Categoria GENRES no Command Palette (`Ctrl+K`) para busca direta de estilos musicais. |
 | **Detecção por Timezone** | ✅ Concluído | Saudação adaptativa no Onboarding baseada no fuso horário do visitante sem GPS. |
-| **Filtro de Qualidade de Áudio** | ⏳ Planejado | Filtro por taxa de bitrate mínima (HQ > 128 kbps) na listagem e discover. |
-| **Histórico de Busca Recente** | ⏳ Planejado | Memorizar as últimas consultas pesquisadas no Command Palette. |
+| **Filtro de Qualidade de Áudio** | ✅ Concluído | Filtro por taxa de bitrate mínima (HQ ≥ 128 kbps) na listagem StationList com contagem dinâmica. |
+| **Histórico de Busca Recente** | ✅ Concluído | Memorização das últimas 6 consultas pesquisadas no Command Palette com atalho direto e botão de limpar. |
+| **Atalhos de Teclado no Player** | ⏳ Planejado | Barra de espaço para play/pause global, tecla M para mute e setas para estações. |
+| **Modo Mini-player Mobile** | ⏳ Planejado | Recolhimento do player em barra ultra-fina para expansão de tela do mapa no mobile. |
 
 ---
 

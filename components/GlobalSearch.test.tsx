@@ -159,4 +159,31 @@ describe("GlobalSearch", () => {
     expect(onSelectGenre).toHaveBeenCalledWith("Ambient");
     expect(onClose).toHaveBeenCalled();
   });
+
+  it("displays recent searches and populates query when clicked", async () => {
+    localStorage.setItem("radio-atlas:recent-searches", JSON.stringify(["Jazz", "Berlin"]));
+    renderWithClient(
+      <GlobalSearch
+        isOpen
+        onClose={vi.fn()}
+        onSelectStation={vi.fn()}
+        onSelectCity={vi.fn()}
+        onSelectCountry={vi.fn()}
+      />
+    );
+    expect(screen.getByTestId("global-search-recent")).toBeInTheDocument();
+    expect(screen.getByText("Jazz")).toBeInTheDocument();
+    expect(screen.getByText("Berlin")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Jazz"));
+    expect(screen.getByTestId("global-search-input")).toHaveValue("Jazz");
+
+    // Clear input to return to recent searches view
+    fireEvent.click(screen.getByLabelText("Clear search"));
+    expect(screen.getByTestId("global-search-recent")).toBeInTheDocument();
+
+    // Clear recent searches
+    fireEvent.click(screen.getByTestId("global-search-clear-recent"));
+    expect(screen.queryByTestId("global-search-recent")).not.toBeInTheDocument();
+  });
 });

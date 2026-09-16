@@ -37,7 +37,7 @@ components/
   └── Onboarding.tsx          # Tela de boas-vindas na primeira visita (saudação adaptativa)
 lib/
   ├── radio-api/              # Cliente Node.js resiliente com pool de mirrors
-  ├── library.ts              # Hooks de persistência local (useFavorites, useRecentlyPlayed, useCitiesVisited)
+  ├── library.ts              # Hooks de persistência local (useFavorites, useRecentlyPlayed, useCitiesVisited, useRecentSearches)
   ├── player-context.tsx      # Contexto global para reprodução contínua entre rotas
   └── format.ts               # Constante TECHNICAL_TEXT_CLASS e formatadores
 ```
@@ -50,7 +50,7 @@ lib/
 2. **Camada de isolamento de API**: Componentes clientes nunca chamam a Radio Browser API diretamente. As requisições passam exclusivamente por rotas de API em `app/api/radio/` com runtime Node.js e pool de mirrors de DNS resiliente.
 3. **Resiliência de Stream**: Toda tentativa de reprodução possui timeout (8s), fallback automático para `fallbackUrl` e recuperação graciosa de erros (`TUNING…` → `LIVE` ou `SIGNAL LOST`). A interface nunca trava por rádio offline.
 4. **Padrão de texto técnico unificado**: Usar sempre a constante `TECHNICAL_TEXT_CLASS` de `lib/format.ts` para metadados, títulos técnicos, tags e badges.
-5. **Persistência local**: Favoritos, histórico de reprodução e cidades visitadas são gravados no `localStorage` via hooks dedicados.
+5. **Persistência local**: Favoritos, histórico de reprodução, cidades visitadas e consultas recentes são gravados no `localStorage` via hooks dedicados.
 6. **Player Contínuo**: O áudio reside no `GlobalPlayer` no `RootLayout`. A navegação entre as abas (`/`, `/discover`, `/library`) não desmonta o player nem interrompe a reprodução da rádio ativa.
 7. **Responsividade Mobile**: Em telas pequenas (`< 768px`), o Explore organiza-se em coluna vertical (mapa na metade superior, lista na metade inferior), e os controles do player tornam-se compactos sem transbordamento.
 8. **Qualidade contínua**:

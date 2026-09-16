@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { Search, X } from "lucide-react";
+import { Clock, Search, X } from "lucide-react";
 import { useCityMarkers, useCountries, useStationSearch } from "@/lib/radio-api/hooks";
+import { useRecentSearches } from "@/lib/library";
 import { TECHNICAL_TEXT_CLASS, formatCityCountry } from "@/lib/format";
 import type { CityMarker, Country, Station } from "@/lib/radio-api/types";
 
@@ -61,6 +62,7 @@ export function GlobalSearch({
 }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const { recentSearches, addRecentSearch, clearRecentSearches } = useRecentSearches();
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   if (isOpen !== prevIsOpen) {
     setPrevIsOpen(isOpen);
@@ -131,6 +133,9 @@ export function GlobalSearch({
   }
 
   function selectItem(item: ResultItem) {
+    if (query.trim()) {
+      addRecentSearch(query.trim());
+    }
     if (item.kind === "station") onSelectStation(item.station);
     else if (item.kind === "city") onSelectCity(item.city);
     else if (item.kind === "country") onSelectCountry(item.country);
@@ -329,6 +334,32 @@ export function GlobalSearch({
             )}
 
             <div className="h-2" />
+          </div>
+        ) : recentSearches.length > 0 ? (
+          <div data-testid="global-search-recent" className="py-2">
+            <div className="flex items-center justify-between px-5 pb-1 pt-2">
+              <span className={TECHNICAL_TEXT_CLASS}>Recent searches</span>
+              <button
+                type="button"
+                data-testid="global-search-clear-recent"
+                onClick={clearRecentSearches}
+                className={`text-[10px] text-white/30 hover:text-white/60 transition-colors ${TECHNICAL_TEXT_CLASS}`}
+              >
+                Clear
+              </button>
+            </div>
+            {recentSearches.map((term) => (
+              <button
+                key={term}
+                type="button"
+                data-testid="global-search-recent-item"
+                onClick={() => setQuery(term)}
+                className="flex w-full items-center gap-3 px-5 py-2.5 text-left text-sm text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+              >
+                <Clock size={13} className="text-white/30" />
+                <span>{term}</span>
+              </button>
+            ))}
           </div>
         ) : (
           /* Hint when empty */

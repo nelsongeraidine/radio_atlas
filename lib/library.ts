@@ -7,9 +7,11 @@ import type { CityMarker, Station } from "./radio-api/types";
 const KEY_FAVORITES = "radio-atlas:favorites";
 const KEY_RECENTLY_PLAYED = "radio-atlas:recently-played";
 const KEY_CITIES_VISITED = "radio-atlas:cities-visited";
+const KEY_RECENT_SEARCHES = "radio-atlas:recent-searches";
 
 const MAX_RECENTLY_PLAYED = 50;
 const MAX_CITIES_VISITED = 100;
+const MAX_RECENT_SEARCHES = 6;
 
 // ── Serialisation helpers ────────────────────────────────────
 function readJSON<T>(key: string, fallback: T): T {
@@ -97,4 +99,30 @@ export function useCitiesVisited() {
   }, []);
 
   return { citiesVisited, addCityVisited };
+}
+
+// ── useRecentSearches ────────────────────────────────────────
+export function useRecentSearches() {
+  const [recentSearches, setRecentSearches] = useState<string[]>(() =>
+    readJSON<string[]>(KEY_RECENT_SEARCHES, [])
+  );
+
+  useEffect(() => {
+    writeJSON(KEY_RECENT_SEARCHES, recentSearches);
+  }, [recentSearches]);
+
+  const addRecentSearch = useCallback((term: string) => {
+    const trimmed = term.trim();
+    if (!trimmed) return;
+    setRecentSearches((prev) => {
+      const deduped = prev.filter((s) => s.toLowerCase() !== trimmed.toLowerCase());
+      return [trimmed, ...deduped].slice(0, MAX_RECENT_SEARCHES);
+    });
+  }, []);
+
+  const clearRecentSearches = useCallback(() => {
+    setRecentSearches([]);
+  }, []);
+
+  return { recentSearches, addRecentSearch, clearRecentSearches };
 }

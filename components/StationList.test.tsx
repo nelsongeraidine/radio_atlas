@@ -58,4 +58,24 @@ describe("StationList", () => {
     );
     await waitFor(() => expect(screen.getByTestId("station-list-error")).toBeInTheDocument());
   });
+
+  it("filters stations by HQ (≥128 kbps) when HQ toggle is clicked", async () => {
+    const { fireEvent } = await import("@testing-library/react");
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        { id: "1", name: "Low Bitrate FM", country: "France", countryCode: "FR", bitrate: 64, tags: [], votes: 1 },
+        { id: "2", name: "High Definition Audio", country: "France", countryCode: "FR", bitrate: 320, tags: [], votes: 5 },
+      ],
+    });
+    renderWithClient(
+      <StationList countryCode="FR" city="Paris" nowPlayingId={null} onSelectStation={vi.fn()} />
+    );
+    await waitFor(() => expect(screen.getByText("Low Bitrate FM")).toBeInTheDocument());
+    expect(screen.getByText("High Definition Audio")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("station-list-hq-toggle"));
+    expect(screen.queryByText("Low Bitrate FM")).not.toBeInTheDocument();
+    expect(screen.getByText("High Definition Audio")).toBeInTheDocument();
+  });
 });
