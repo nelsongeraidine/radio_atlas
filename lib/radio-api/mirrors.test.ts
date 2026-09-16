@@ -47,6 +47,13 @@ describe("mirrors", () => {
     expect(mirrors.length).toBeGreaterThan(0);
   });
 
+  it("falls back to a fixed mirror list when DNS resolution returns empty array", async () => {
+    resolveSrv.mockResolvedValue([]);
+    const { getMirrors } = await import("./mirrors");
+    const mirrors = await getMirrors();
+    expect(mirrors.length).toBeGreaterThan(0);
+  });
+
   it("caches the resolved mirrors and does not re-resolve within the TTL", async () => {
     resolveSrv.mockResolvedValue([{ name: "de1.api.radio-browser.info", priority: 1, weight: 1, port: 443 }]);
     const { getMirrors } = await import("./mirrors");
