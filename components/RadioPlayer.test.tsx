@@ -63,4 +63,48 @@ describe("RadioPlayer", () => {
     await userEvent.click(screen.getByText("Try again"));
     expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalled();
   });
+
+  it("falls back then shows SIGNAL LOST when the stream never fires canplay/error (dead connection)", () => {
+    vi.useFakeTimers();
+    try {
+      render(<RadioPlayer station={station} />);
+      expect(screen.getByTestId("player-status")).toHaveTextContent("TUNING…");
+
+      // Initial connection to the primary URL never resolves -> timeout fires -> fallback attempt.
+      act(() => {
+        vi.advanceTimersByTime(8000);
+      });
+      const audio = screen.getByTestId("radio-player").querySelector("audio")!;
+      expect(audio.src).toContain("fallback");
+      expect(screen.getByTestId("player-status")).toHaveTextContent("TUNING…");
+
+      // Fallback connection also never resolves -> timeout fires again -> SIGNAL LOST.
+      act(() => {
+        vi.advanceTimersByTime(8000);
+      });
+      expect(screen.getByTestId("player-status")).toHaveTextContent("SIGNAL LOST");
+      expect(screen.getByText("Try again")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not time out once canplay fires before the timeout elapses", () => {
+    vi.useFakeTimers();
+    try {
+      render(<RadioPlayer station={{ ...station, fallbackUrl: undefined }} />);
+      const audio = screen.getByTestId("radio-player").querySelector("audio")!;
+      act(() => {
+        audio.dispatchEvent(new Event("canplay"));
+      });
+      expect(screen.getByTestId("player-status")).toHaveTextContent("TUNED IN");
+
+      act(() => {
+        vi.advanceTimersByTime(8000);
+      });
+      expect(screen.getByTestId("player-status")).toHaveTextContent("TUNED IN");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

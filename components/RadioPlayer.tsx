@@ -12,47 +12,88 @@ interface RadioPlayerProps {
   station: Station | null;
 }
 
+// Same timeout used for Radio Browser API calls (lib/radio-api/client.ts), applied here to the
+// audio stream connection itself: a dead stream host can accept the TCP connection and simply
+// never send data, which triggers neither `error` nor a rejected `play()` promise.
+const STREAM_CONNECT_TIMEOUT_MS = 8000;
+
 export function RadioPlayer({ station }: RadioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [status, setStatus] = useState<PlayerStatus>("idle");
   const [volume, setVolume] = useState(0.8);
-  const [usingFallback, setUsingFallback] = useState(false);
+  // A ref, not state: this is read from setTimeout callbacks scheduled by earlier renders
+  // (the stream-connect timeout below), which would otherwise close over a stale `usingFallback`
+  // value from whichever render happened to be current when the timer was armed. It isn't
+  // rendered anywhere, so it doesn't need to trigger re-renders either.
+  const usingFallbackRef = useRef(false);
+  const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function clearConnectTimeout() {
+    if (connectTimeoutRef.current !== null) {
+      clearTimeout(connectTimeoutRef.current);
+      connectTimeoutRef.current = null;
+    }
+  }
 
   useEffect(() => {
-    if (!station) {
-      setStatus("idle");
-      return;
-    }
-    setUsingFallback(false);
-    tune(station.url);
+    if (!station) return;
+    tune(station.url, { isFallback: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [station]);
 
-  function tune(url: string) {
+  useEffect(() => {
+    return () => clearConnectTimeout();
+  }, []);
+
+  function tune(url: string, options?: { isFallback: boolean }) {
     const audio = audioRef.current;
     if (!audio) return;
+    if (options) {
+      usingFallbackRef.current = options.isFallback;
+    }
+    clearConnectTimeout();
     setStatus("tuning");
     audio.src = url;
     audio.volume = volume;
-    audio.play()?.catch(() => setStatus("signal_lost"));
+    audio.play()?.catch(() => {
+      clearConnectTimeout();
+      handleError();
+    });
+    connectTimeoutRef.current = setTimeout(() => {
+      connectTimeoutRef.current = null;
+      handleError();
+    }, STREAM_CONNECT_TIMEOUT_MS);
   }
 
   function handleError() {
-    if (station?.fallbackUrl && !usingFallback) {
-      setUsingFallback(true);
-      tune(station.fallbackUrl);
+    clearConnectTimeout();
+    if (station?.fallbackUrl && !usingFallbackRef.current) {
+      tune(station.fallbackUrl, { isFallback: true });
       return;
     }
     setStatus("signal_lost");
   }
 
   function handleCanPlay() {
+    clearConnectTimeout();
     setStatus("tuned_in");
+  }
+
+  function handleWaiting() {
+    setStatus("tuning");
+    // A stream that starts playing and then stalls mid-stream (buffer underrun with no more
+    // data coming) fires `waiting` but never `error`/`canplay` again — arm the same recovery
+    // timeout so it doesn't hang silently forever.
+    clearConnectTimeout();
+    connectTimeoutRef.current = setTimeout(() => {
+      connectTimeoutRef.current = null;
+      handleError();
+    }, STREAM_CONNECT_TIMEOUT_MS);
   }
 
   function handleTryAgain() {
     if (!station) return;
-    tune(usingFallback && station.fallbackUrl ? station.fallbackUrl : station.url);
+    tune(usingFallbackRef.current && station.fallbackUrl ? station.fallbackUrl : station.url);
   }
 
   function togglePlayPause() {
@@ -62,7 +103,7 @@ export function RadioPlayer({ station }: RadioPlayerProps) {
       audio.pause();
       setStatus("idle");
     } else if (status === "idle") {
-      tune(usingFallback && station.fallbackUrl ? station.fallbackUrl : station.url);
+      tune(usingFallbackRef.current && station.fallbackUrl ? station.fallbackUrl : station.url);
     }
   }
 
@@ -77,9 +118,9 @@ export function RadioPlayer({ station }: RadioPlayerProps) {
   return (
     <div
       data-testid="radio-player"
-      className="fixed inset-x-0 bottom-0 flex items-center justify-between gap-4 border-t border-white/10 bg-black/80 px-4 py-3 backdrop-blur"
+      className="flex items-center justify-between gap-4 border-t border-white/10 bg-black/80 px-4 py-3 backdrop-blur"
     >
-      <audio ref={audioRef} onError={handleError} onCanPlay={handleCanPlay} onWaiting={() => setStatus("tuning")} />
+      <audio ref={audioRef} onError={handleError} onCanPlay={handleCanPlay} onWaiting={handleWaiting} />
       {station ? (
         <>
           <div className="flex flex-col gap-1">
