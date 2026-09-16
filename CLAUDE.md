@@ -1,35 +1,60 @@
 # Radio Atlas — Instruções de engenharia
 
-Especificação completa de produto em `PRD.md`. Este arquivo cobre apenas como construir, não o que construir.
+Especificação de produto e status de implementação em `PRD.md`. Este arquivo cobre as diretrizes de arquitetura, convenções e padrões técnicos para o desenvolvimento.
 
 ## Stack obrigatória
 
-React, Next.js, TypeScript, Tailwind CSS, MapLibre GL ou Mapbox GL para o mapa base, Three.js/Globe.gl se a performance permitir globo 3D, Radio Browser API (https://www.radio-browser.info/) como fonte de dados, Framer Motion para animação, Lucide Icons.
+- **Framework**: Next.js 16 (App Router) com React 19 e TypeScript.
+- **Estilização**: Tailwind CSS (paleta escura, minimalista, sem cards pesados).
+- **Mapa**: MapLibre GL com tiles vetoriais CARTO Dark Matter (dark basemap limpo).
+- **Dados de Rádio**: Radio Browser API (https://www.radio-browser.info/) via cliente tipado próprio no servidor (`lib/radio-api/`).
+- **Data Fetching / Cache**: TanStack React Query (`@tanstack/react-query`).
+- **Ícones**: Lucide React (`lucide-react`).
+- **Testes & Qualidade**: Vitest (`vitest`), Testing Library (`@testing-library/react`), ESLint 9, TypeScript (`tsc --noEmit`).
 
-## Arquitetura de componentes
+---
 
-`WorldMap` (globo/mapa e marcadores), `CityOverlay` (painel de cidade selecionada), `StationList` (estações da cidade/região), `RadioPlayer` (player fixo inferior), `GlobalSearch` (command palette), `Spotlight` (destaques), `DiscoverSection` (carrosséis editoriais), `Library` (favoritos/histórico local), `StationCard` (card reutilizável de estação), `AudioVisualizer` (animação de onda durante reprodução).
+## Arquitetura de Pastas e Componentes
 
-Isolar toda chamada à Radio Browser API em uma camada de abstração própria (ex: `lib/radio-api.ts`), nunca chamada direto dos componentes. Isso permite trocar ou somar outra fonte de dados no futuro sem tocar na UI.
+```text
+app/
+  ├── layout.tsx              # RootLayout com Inter, Providers e Player Global
+  ├── page.tsx                # Página principal (Explore: Mapa + Sidebar + Spotlight)
+  ├── discover/page.tsx       # Página Discover (Carrosséis editoriais)
+  ├── library/page.tsx        # Página Library (Favoritos, Histórico, Cidades visitadas)
+  └── api/radio/              # Rotas de API Node.js (seed, stations, countries, search)
+components/
+  ├── WorldMap.tsx            # Mapa interativo MapLibre GL
+  ├── CityOverlay.tsx         # Cabeçalho da cidade/país selecionado
+  ├── StationList.tsx         # Lista de estações da localidade selecionada
+  ├── StationCard.tsx         # Card individual de rádio com play e favoritos
+  ├── RadioPlayer.tsx         # Player de áudio fixo e controles de reprodução
+  ├── AudioVisualizer.tsx     # Visualizador minimalista com animação CSS
+  ├── GlobalSearch.tsx        # Command palette (Ctrl+K / ⌘K)
+  ├── DiscoverSection.tsx     # Seção de carrossel editorial no Discover
+  ├── Spotlight.tsx           # Destaques (Top 5 rádios) na sidebar
+  └── Onboarding.tsx          # Tela de boas-vindas na primeira visita
+lib/
+  ├── radio-api/              # Cliente Node.js resiliente com pool de mirrors
+  ├── library.ts              # Hooks de persistência local (useFavorites, useRecentlyPlayed, useCitiesVisited)
+  ├── player-context.tsx      # Contexto global para reprodução contínua entre rotas
+  └── format.ts               # Constante TECHNICAL_TEXT_CLASS e formatadores
+```
 
-## Convenções não negociáveis
+---
 
-- Nunca dado fictício: toda estação, cidade, país, bitrate, idioma exibido vem da API real. Se a API não retornar o campo, omitir o campo, não inventar.
-- Fetch de estações só sob ação do usuário (seleção de cidade/país, busca, navegação de região). Nunca carregar o catálogo inteiro no load inicial.
-- Stream de áudio carregado só ao clicar Play (lazy loading).
-- Cache de consultas à API para evitar refetch repetido da mesma cidade/região.
-- Todo erro de stream tratado: timeout, fallback, CORS, reconexão automática, troca para stream alternativo da mesma estação quando existir. A UI nunca trava por rádio offline.
-- Favoritos, histórico e preferências de biblioteca persistidos em `localStorage`.
-- O padrão de texto técnico definido no PRD (caixa alta, formato cidade/país/contagem/bitrate) é uma constante de UI única, reaproveitada em hover, card e player, nunca redefinida por componente.
-- Skeleton loading discreto em qualquer busca à API.
+## Convenções Não Negociáveis
 
-## Definition of done
-
-- Usuário navega o mapa/globo, seleciona país e cidade, encontra e reproduz rádios reais.
-- Play, pause, troca de estação, volume, busca, favoritar, ver recentes e "rádio aleatória" funcionam de ponta a ponta, sem mock.
-- Nenhuma tela trava com rádio offline ou API lenta.
-- Responsivo nos três breakpoints descritos no PRD.
-- Zero placeholder, zero TODO, zero função vazia no código entregue.
+1. **Nunca dado fictício**: Toda estação, cidade, país, bitrate e idioma vem da API real ou de `data/cities.json`. Campos ausentes na API são omitidos, nunca inventados.
+2. **Camada de isolamento de API**: Componentes clientes nunca chamam a Radio Browser API diretamente. As requisições passam exclusivamente por rotas de API em `app/api/radio/` com runtime Node.js e pool de mirrors de DNS resiliente.
+3. **Resiliência de Stream**: Toda tentativa de reprodução possui timeout (8s), fallback automático para `fallbackUrl` e recuperação graciosa de erros (`TUNING…` → `LIVE` ou `SIGNAL LOST`). A interface nunca trava por rádio offline.
+4. **Padrão de texto técnico unificado**: Usar sempre a constante `TECHNICAL_TEXT_CLASS` de `lib/format.ts` para metadados, títulos técnicos, tags e badges.
+5. **Persistência local**: Favoritos, histórico de reprodução e cidades visitadas são gravados no `localStorage` via hooks dedicados.
+6. **Player Contínuo**: A navegação entre as abas (`/`, `/discover`, `/library`) não interrompe a reprodução da rádio ativa.
+7. **Qualidade contínua**:
+   - Rodar testes: `npm test` (deve passar 100% dos testes sem erros);
+   - Lint: `npm run lint` (zero warnings e zero erros);
+   - Typecheck: `npx tsc --noEmit` (zero erros de tipagem).
 
 <!-- BEGIN:nextjs-agent-rules -->
 

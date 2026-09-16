@@ -84,7 +84,10 @@ describe("GlobalSearch", () => {
       <GlobalSearch isOpen onClose={vi.fn()} onSelectStation={vi.fn()} onSelectCity={vi.fn()} onSelectCountry={vi.fn()} />
     );
     fireEvent.change(screen.getByTestId("global-search-input"), { target: { value: "jazz" } });
-    await waitFor(() => expect(screen.getByTestId("global-search-radios-skeleton")).toBeInTheDocument());
+    await waitFor(() => {
+      expect(screen.getByTestId("global-search-radios-skeleton")).toBeInTheDocument();
+      expect(resolveSearch).toBeDefined();
+    });
     resolveSearch({ ok: true, json: async () => [JAZZ_STATION] });
     await waitFor(() => expect(screen.getByTestId("global-search-result-station")).toBeInTheDocument());
   });

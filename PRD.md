@@ -1,71 +1,119 @@
 # PRD — Radio Atlas
 
-Instruções de engenharia (stack, arquitetura, convenções) em `CLAUDE.md`. Este arquivo cobre o que construir, não como.
+Instruções de engenharia (stack, arquitetura, convenções) em `CLAUDE.md`. Este arquivo cobre o que construir, o status atual e o roadmap do produto.
 
-## Visão geral
+## 1. Visão geral
 
 Webapp para descobrir e ouvir rádios ao vivo do mundo todo através de uma experiência visual, geográfica e imersiva. Conceito central: explorar o planeta e descobrir o que está tocando em cada cidade agora.
 
-## Identidade visual
+---
 
-Interface premium, minimalista, cinematográfica, estilo app editorial de música/viagem: fundo escuro, tipografia grande com espaço generoso, textos secundários pequenos em caixa alta, translucidez, bordas discretas, animações de 200-500ms.
+## 2. Status Geral do Produto
 
-Evitar: aparência de dashboard corporativo, excesso de cards, gradientes chamativos, cores muito saturadas.
+| Módulo / Funcionalidade | Status | Detalhes |
+| :--- | :--- | :--- |
+| **Core Explore (Fase 1)** | ✅ Concluído | Mapa mundial interativo, marcadores reais, seleção de cidade/país, listagem de rádios. |
+| **Busca Global (Fase 2)** | ✅ Concluído | Command palette (`Ctrl+K` / `⌘K`) com busca por nome de rádio, cidades e países. |
+| **Onboarding** | ✅ Concluído | Slides de boas-vindas com transição suave, pulável e com persistência em `localStorage`. |
+| **Random Radio (Shuffle)** | ✅ Concluído | Ação "Take me somewhere" com voo animado e mensagens de transição imersivas. |
+| **Página Discover** | ✅ Concluído | Carrosséis editoriais por região e curadorias (Around the world, Brazil, Jazz, etc.). |
+| **Página Library** | ✅ Concluído | Abas de Favoritos, Tocadas recentemente e Cidades visitadas no `localStorage`. |
+| **Player Base & Visualizer** | ✅ Concluído | Player fixo, visualizador minimalista, controle de volume e playlist (anterior/próxima). |
+| **Player Global Contínuo** | 🔄 Em andamento | Manter reprodução de áudio sem interrupção ao navegar entre Explore, Discover e Library. |
+| **Deep Linking no Explore** | 🔄 Em andamento | Suporte a `/?city=...&cc=...` para carregar cidade/estação ao vir de links ou do Discover. |
+| **Ação Compartilhar Rádio** | 🔄 Em andamento | Botão no player para copiar link direto da estação com feedback visual. |
+| **Busca por Gênero/Idioma** | ⏳ Planejado | Expandir o Command Palette para filtrar por gênero musical e idioma. |
+| **Controle LOCAL / WORLD** | ⏳ Planejado | Alternar raio de priorização na listagem de estações. |
 
-**Padrão de texto técnico** (usar em todo lugar que exibe metadado de estação/cidade): caixa alta, pequeno, formato `CIDADE, PAÍS` / `N STATIONS` / `BITRATE KBPS` / `LIVE` / `IDIOMA` / `GÊNERO`. Nomes de cidade em destaque terminam com ponto final (ex: "Paris.") como parte da identidade gráfica.
+---
 
-Não usar nome, logo ou texto de nenhuma plataforma de rádio existente.
+## 3. Identidade visual
 
-## Navegação
+Interface premium, minimalista, cinematográfica, estilo app editorial de música/viagem: fundo escuro (`bg-black`), tipografia limpa (Inter), textos secundários pequenos em caixa alta, translucidez (`backdrop-blur`), bordas discretas (`border-white/8`), animações suaves (200-500ms).
 
-Barra superior: `RADIO ATLAS` + Explore / Discover / Library à esquerda. Busca "Search stations, cities or countries" com atalho ⌘K/Ctrl+K à direita, abre command palette global.
+- **Padrão de texto técnico** (`TECHNICAL_TEXT_CLASS`): caixa alta, tracking espaçado, formato `CIDADE, PAÍS` / `N STATIONS` / `BITRATE KBPS` / `LIVE` / `IDIOMA` / `GÊNERO`. Nomes de cidade e país em destaque terminam com ponto final (ex: "Paris.", "Japan.") como parte da identidade gráfica.
+- Evitar: aparência de dashboard corporativo, excesso de cards, gradientes chamativos, cores saturadas.
 
-## Tela Explore (principal)
+---
 
-Globo 3D ou mapa mundial interativo ocupando quase toda a tela: arrastar, zoom, clicar em país/cidade/marcador. Pontos luminosos indicam locais com rádios; agrupar geograficamente em zoom distante, revelar cidades individuais ao aproximar. Nunca renderizar milhares de marcadores simultâneos.
+## 4. Navegação & Rotas
 
-Ao selecionar cidade: animação suave de aproximação, mostrar nome + país + contagem de estações + ação "Somewhere new" (escolhe outra cidade aleatória e anima até ela). Lista de estações da cidade com nome, logo, país, idioma, gênero, bitrate, status e botão play.
+- **Header global**: `RADIO ATLAS` + navegação (Explore `/`, Discover `/discover`, Library `/library`) à esquerda.
+- **Ações rápidas**: Botão "Take me somewhere" (Shuffle) e busca rápida "Search ⌘K".
+- **Comportamento**: A navegação entre abas não deve interromper a reprodução de áudio do usuário (Player Global).
 
-Controle LOCAL/WORLD: LOCAL prioriza estações próximas à cidade selecionada, WORLD permite descoberta global.
+---
 
-**Spotlight**: cerca de 5 estações selecionadas, reprodução instantânea ao clicar.
+## 5. Tela Explore (Principal)
 
-## Player
+- Mapa mundial escuro vetorial (MapLibre GL com CARTO Dark Matter): arrastar, zoom, marcadores de cidades curadas.
+- Ao clicar em uma cidade ou país:
+  - Voo suave da câmera (`flyTo`);
+  - Abertura do painel lateral com nome da localidade e contagem;
+  - **Spotlight**: seleção das top 5 rádios locais prontas para tocar em 1 clique;
+  - **StationList**: lista completa de estações reais com status, tags, bitrate e botão de favoritar.
+- Suporte a deep links via query params (`/?city=Paris&cc=FR` ou `/?cc=JP`), permitindo abrir cidades diretamente a partir do Discover, Library ou links compartilhados.
 
-Fixo na parte inferior, discreto: logo, nome da rádio, cidade/país, faixa/programa atual quando a API fornecer. Controles: anterior, play/pause, próxima, volume, favoritar, compartilhar. Mostrar LIVE e bitrate. Animação de onda sonora minimalista durante reprodução, sem waveform exagerada.
+---
 
-## Discover
+## 6. Player de Áudio
 
-Página editorial com carrosséis horizontais por seção: Around the world, Something different, Late night, Electronic, Jazz, News & Talk, Brazil, Europe, Asia.
+- Fixo na parte inferior da interface, persistente entre todas as páginas.
+- **Informações**: Nome da rádio, localidade (`CIDADE, PAÍS`), bitrate e tag técnica.
+- **Controles**:
+  - Play / Pause;
+  - Anterior / Próxima (navegação de playlist);
+  - Controle de volume com mute/unmute;
+  - Favoritar (coração conectado à Library);
+  - Compartilhar rádio (copia link direto com toast de confirmação);
+  - Visualizador de ondas sonoras CSS minimalista (`AudioVisualizer`).
+- **Estados de stream**:
+  - `TUNING…` (conectando/bufferizando);
+  - `LIVE` (reproduzindo áudio real);
+  - `SIGNAL LOST` com ação `TRY AGAIN` (fallback automático para URL secundária e recuperação sem travar UI).
 
-## Library
+---
 
-Abas: Favorites, Recently played, Cities visited, Stations followed. Favoritar via ícone de coração.
+## 7. Discover
 
-## Busca global (command palette)
+Página editorial com carrosséis horizontais por seção curada:
+- *Around the world*, *Brazil*, *Electronic*, *Jazz*, *Europe*, *Late night*, *Asia*, *News & Talk*, *Something different*.
+- Clicar em uma estação toca imediatamente e adiciona ao histórico.
+- Clicar na localidade redireciona ao Explore com a cidade/país focado.
 
-Ctrl+K / ⌘K abre busca central, placeholder "Find a frequency…", pesquisa por rádio, cidade, país, gênero, idioma, resultados agrupados por categoria (RADIOS / CITY / COUNTRY).
+---
 
-## Random Radio
+## 8. Library
 
-Ação "Take me somewhere": escolhe cidade aleatória, anima o mapa, seleciona e toca uma rádio disponível. Mensagens de transição dinâmicas e variadas (ex: "Searching the airwaves…", "Tuning into Tokyo…").
+Armazenamento local persistido via `localStorage`:
+- **Favorites**: Rádios marcadas como favoritas com opção de remover ou tocar.
+- **Recently played**: Histórico das últimas 50 rádios reproduzidas.
+- **Cities visited**: Histórico das cidades exploradas no mapa.
 
-## Mapa
+---
 
-Visual limpo: sem estradas, lojas ou pontos de interesse irrelevantes. Prioridade: continentes, países, oceanos, cidades, estações. Deve funcionar como interface de exploração, não como mapa tradicional de navegação.
+## 9. Busca Global (Command Palette)
 
-## Estados de interação
+Atalho `Ctrl+K` / `⌘K`:
+- Busca ao vivo por nome de estação no Radio Browser API (com debounce de 300ms e skeleton loading);
+- Busca instantânea em cidades curadas (`data/cities.json`);
+- Busca instantânea na lista de países da Radio Browser;
+- Navegação completa por teclado (setas para cima/baixo, Enter para selecionar, Esc para fechar).
 
-Hover de cidade e de estação seguem o padrão de texto técnico definido acima. Estados do player: `TUNING…` (carregando), `TUNED IN` (tocando), `SIGNAL LOST` com ação `TRY AGAIN` (erro).
+---
 
-## Onboarding
+## 10. Random Radio ("Take me somewhere")
 
-Detecção opcional de país do usuário sem exigir GPS ("Good morning from Brazil." + sugestões locais). Entrada inicial: planeta aparece lentamente, "A world of sound." → "Thousands of stations. One planet." → botão "Start exploring", poucos segundos, pulável. Estado inicial pós-onboarding: cidade de destaque automática (ex. Paris) com Spotlight de 5 rádios reais.
+- Botão no cabeçalho e ação no painel da cidade:
+- Sorteia uma cidade com rádios verificadas;
+- Mostra mensagem de transição cinematográfica na tela ("Searching the airwaves…", "Spinning the globe…");
+- Anima o mapa até a cidade sorteada e inicia a reprodução de uma das suas estações.
 
-## Responsividade
+---
 
-Desktop: experiência completa, mapa grande. Tablet: controles reorganizados. Mobile: mapa ocupa cerca de metade da tela, estação selecionada abaixo, player fixo, menus compactos. Em nenhum breakpoint a interface deve virar um dashboard cheio de cards.
+## 11. Onboarding
 
-## Critério de aceite
-
-Produto real e funcional, não mockup: navegar pelo planeta, selecionar país/cidade, encontrar e reproduzir rádios reais, pausar, trocar, controlar volume, pesquisar, favoritar, ver recentes, descobrir aleatoriamente. Resultado deve parecer produto premium editorial, não um diretório tradicional de rádios.
+- Apresentação na primeira visita:
+  - "A world of sound." → "Thousands of stations. One planet.";
+  - Botão "Start exploring" ou ação de "Skip";
+  - Persiste conclusão em `localStorage` (`radio-atlas:onboarding-done`).

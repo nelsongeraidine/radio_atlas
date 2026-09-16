@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { GlobalSearch } from "@/components/GlobalSearch";
-import { RadioPlayer } from "@/components/RadioPlayer";
 import { DiscoverSection } from "@/components/DiscoverSection";
-import { useFavorites, useRecentlyPlayed } from "@/lib/library";
+import { usePlayer } from "@/lib/player-context";
 import { TECHNICAL_TEXT_CLASS } from "@/lib/format";
 import type { CityMarker, Country, Station } from "@/lib/radio-api/types";
-import { useRouter } from "next/navigation";
 
 // Editorial sections: each maps to a country code or a tag search
 // Country codes come directly from Radio Browser API; tags map to genre searches
@@ -26,27 +25,24 @@ const SECTIONS = [
 ] as const;
 
 export default function DiscoverPage() {
-  const [nowPlaying, setNowPlaying] = useState<Station | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { isFavorited, toggleFavorite } = useFavorites();
-  const { addToHistory } = useRecentlyPlayed();
+  const { nowPlaying, playStation, isFavorited, toggleFavorite } = usePlayer();
   const router = useRouter();
 
   function handleSelectStation(station: Station) {
-    setNowPlaying(station);
-    addToHistory(station);
+    playStation(station);
   }
 
   function handleSelectCity(city: CityMarker) {
-    router.push(`/?city=${city.city}&cc=${city.countryCode}`);
+    router.push(`/?city=${encodeURIComponent(city.city)}&cc=${encodeURIComponent(city.countryCode)}`);
   }
 
   function handleSelectCountry(country: Country) {
-    router.push(`/?cc=${country.countryCode}`);
+    router.push(`/?cc=${encodeURIComponent(country.countryCode)}`);
   }
 
   return (
-    <main className="flex h-screen flex-col bg-black">
+    <main className="flex h-full flex-col bg-black">
       {/* Header */}
       <header className="flex items-center justify-between border-b border-white/8 px-6 py-3">
         <div className="flex items-center gap-8">
@@ -95,12 +91,6 @@ export default function DiscoverPage() {
           ))}
         </div>
       </div>
-
-      <RadioPlayer
-        station={nowPlaying}
-        isFavorited={nowPlaying ? isFavorited(nowPlaying) : false}
-        onToggleFavorite={toggleFavorite}
-      />
 
       <GlobalSearch
         isOpen={isSearchOpen}

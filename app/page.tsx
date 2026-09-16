@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Shuffle, Search } from "lucide-react";
 import { WorldMap } from "@/components/WorldMap";
 import { CityOverlay } from "@/components/CityOverlay";
 import { StationList } from "@/components/StationList";
-import { RadioPlayer } from "@/components/RadioPlayer";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { Spotlight } from "@/components/Spotlight";
 import { Onboarding, shouldShowOnboarding } from "@/components/Onboarding";
 import { useCityMarkers, useStations } from "@/lib/radio-api/hooks";
-import { useFavorites, useRecentlyPlayed, useCitiesVisited } from "@/lib/library";
+import { useCitiesVisited } from "@/lib/library";
+import { usePlayer } from "@/lib/player-context";
 import { TECHNICAL_TEXT_CLASS } from "@/lib/format";
 import type { CityMarker, Country, Station } from "@/lib/radio-api/types";
 
@@ -32,15 +33,14 @@ const RANDOM_MESSAGES = [
   "Finding a signal…",
 ];
 
-export default function ExplorePage() {
+function ExploreContent() {
   const { data: cities, isLoading, isError } = useCityMarkers();
   const [selection, setSelection] = useState<Selection | null>(null);
-  const [nowPlaying, setNowPlaying] = useState<Station | null>(null);
-  const [nowPlayingIndex, setNowPlayingIndex] = useState(-1);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [randomMessage, setRandomMessage] = useState("");
   const [flyToCity, setFlyToCity] = useState<CityMarker | null>(null);
   const [dismissedOnboarding, setDismissedOnboarding] = useState(false);
+
   const isClientOnboardingDone = useSyncExternalStore(
     subscribeNoop,
     () => !shouldShowOnboarding(),
@@ -48,15 +48,72 @@ export default function ExplorePage() {
   );
   const showOnboarding = !isClientOnboardingDone && !dismissedOnboarding;
 
-  // Library hooks
-  const { isFavorited, toggleFavorite } = useFavorites();
-  const { addToHistory } = useRecentlyPlayed();
+  // Global player context
+  const {
+    nowPlaying,
+    playStation,
+    setPlaylist,
+    isFavorited,
+    toggleFavorite,
+  } = usePlayer();
+
   const { addCityVisited } = useCitiesVisited();
 
-  // Playlist for prev/next navigation — the station list of the current selection
-  const cityCode = selection?.type === "city" ? selection.city.countryCode : selection?.type === "country" ? selection.countryCode : null;
+  // Stations for current selection
+  const cityCode =
+    selection?.type === "city"
+      ? selection.city.countryCode
+      : selection?.type === "country"
+      ? selection.countryCode
+      : null;
   const cityName = selection?.type === "city" ? selection.city.city : undefined;
-  const { data: playlist = [] } = useStations(cityCode, cityName);
+  const { data: selectionStations = [] } = useStations(cityCode, cityName);
+
+  // Keep player playlist synced with selection stations
+  useEffect(() => {
+    if (selectionStations.length > 0) {
+      setPlaylist(selectionStations);
+    }
+  }, [selectionStations, setPlaylist]);
+
+  // Deep linking via URL params: ?city=Paris&cc=FR or ?cc=JP
+  const searchParams = useSearchParams();
+  const paramCity = searchParams?.get("city");
+  const paramCc = searchParams?.get("cc");
+  const paramStation = searchParams?.get("station");
+
+  const [lastParamsKey, setLastParamsKey] = useState("");
+  const currentParamsKey = `${paramCity || ""}-${paramCc || ""}`;
+
+  if (cities?.length && currentParamsKey !== "-" && currentParamsKey !== lastParamsKey) {
+    setLastParamsKey(currentParamsKey);
+    if (paramCity && paramCc) {
+      const found = cities.find(
+        (c) =>
+          c.city.toLowerCase() === paramCity.toLowerCase() &&
+          c.countryCode.toUpperCase() === paramCc.toUpperCase()
+      );
+      if (found) {
+        setSelection({ type: "city", city: found });
+        setFlyToCity(found);
+      }
+    } else if (paramCc) {
+      setSelection({
+        type: "country",
+        countryCode: paramCc.toUpperCase(),
+        countryName: paramCc.toUpperCase(),
+      });
+    }
+  }
+
+  // Auto-play station if ?station=id param matches a station
+  useEffect(() => {
+    if (!paramStation || !selectionStations.length) return;
+    const target = selectionStations.find((s) => s.id === paramStation);
+    if (target && nowPlaying?.id !== target.id) {
+      playStation(target, selectionStations);
+    }
+  }, [selectionStations, paramStation, nowPlaying, playStation]);
 
   // Ctrl+K / ⌘K shortcut
   useEffect(() => {
@@ -71,19 +128,7 @@ export default function ExplorePage() {
   }, []);
 
   function handleSelectStation(station: Station) {
-    const idx = playlist.findIndex((s) => s.id === station.id);
-    setNowPlaying(station);
-    setNowPlayingIndex(idx);
-    addToHistory(station);
-  }
-
-  function handleNavigate(direction: "prev" | "next") {
-    const nextIdx = direction === "prev" ? nowPlayingIndex - 1 : nowPlayingIndex + 1;
-    const station = playlist[nextIdx];
-    if (!station) return;
-    setNowPlaying(station);
-    setNowPlayingIndex(nextIdx);
-    addToHistory(station);
+    playStation(station, selectionStations);
   }
 
   function handleSelectCity(city: CityMarker) {
@@ -111,7 +156,7 @@ export default function ExplorePage() {
     <>
       {showOnboarding && <Onboarding onDone={() => setDismissedOnboarding(true)} />}
 
-      <main className="flex h-screen flex-col bg-black">
+      <main className="flex h-full flex-col bg-black">
         {/* ── Header ───────────────────────────────────────── */}
         <header className="flex items-center justify-between border-b border-white/8 px-6 py-3">
           {/* Brand + Nav */}
@@ -218,9 +263,9 @@ export default function ExplorePage() {
               )}
 
               {/* Spotlight (top 5 from this city/country) */}
-              {playlist.length > 0 && (
+              {selectionStations.length > 0 && (
                 <Spotlight
-                  stations={playlist}
+                  stations={selectionStations}
                   nowPlayingId={nowPlaying?.id ?? null}
                   onPlay={handleSelectStation}
                 />
@@ -245,16 +290,6 @@ export default function ExplorePage() {
           )}
         </div>
 
-        {/* ── Player ───────────────────────────────────────── */}
-        <RadioPlayer
-          station={nowPlaying}
-          playlist={playlist}
-          nowPlayingIndex={nowPlayingIndex}
-          onNavigate={handleNavigate}
-          isFavorited={nowPlaying ? isFavorited(nowPlaying) : false}
-          onToggleFavorite={toggleFavorite}
-        />
-
         {/* ── Search palette ───────────────────────────────── */}
         <GlobalSearch
           isOpen={isSearchOpen}
@@ -265,5 +300,13 @@ export default function ExplorePage() {
         />
       </main>
     </>
+  );
+}
+
+export default function ExplorePage() {
+  return (
+    <Suspense fallback={<div className="flex h-full flex-col bg-black" />}>
+      <ExploreContent />
+    </Suspense>
   );
 }

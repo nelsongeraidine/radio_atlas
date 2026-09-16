@@ -107,4 +107,19 @@ describe("RadioPlayer", () => {
       vi.useRealTimers();
     }
   });
+
+  it("copies shareable station URL when share button is clicked", async () => {
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: writeTextMock,
+      },
+    });
+
+    render(<RadioPlayer station={station} />);
+    const shareBtn = screen.getByLabelText("Share station");
+    await userEvent.click(shareBtn);
+    expect(writeTextMock).toHaveBeenCalled();
+    expect(await screen.findByTestId("copied-toast")).toBeInTheDocument();
+  });
 });

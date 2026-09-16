@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { Heart, Pause, Play, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
+import { Heart, Pause, Play, Share2, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
 import type { Station } from "@/lib/radio-api/types";
 import { TECHNICAL_TEXT_CLASS, formatBitrate, formatCityCountry } from "@/lib/format";
 import { AudioVisualizer } from "./AudioVisualizer";
@@ -34,12 +34,32 @@ export function RadioPlayer({
   const [status, setStatus] = useState<PlayerStatus>("idle");
   const [volume, setVolume] = useState(0.8);
   const [muted, setMuted] = useState(false);
+  const [copied, setCopied] = useState(false);
   // A ref, not state: this is read from setTimeout callbacks scheduled by earlier renders
   // (the stream-connect timeout below), which would otherwise close over a stale `usingFallback`
   // value from whichever render happened to be current when the timer was armed. It isn't
   // rendered anywhere, so it doesn't need to trigger re-renders either.
   const usingFallbackRef = useRef(false);
   const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function handleShare() {
+    if (!station || typeof window === "undefined") return;
+    const url = new URL(window.location.origin);
+    url.pathname = "/";
+    if (station.state) url.searchParams.set("city", station.state);
+    url.searchParams.set("cc", station.countryCode);
+    url.searchParams.set("station", station.id);
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url.toString());
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback
+    }
+  }
 
   function clearConnectTimeout() {
     if (connectTimeoutRef.current !== null) {
@@ -288,6 +308,26 @@ export function RadioPlayer({
               <Heart size={15} className={isFavorited ? "fill-current" : ""} />
             </button>
           )}
+
+          {/* Share */}
+          <div className="relative">
+            <button
+              type="button"
+              aria-label="Share station"
+              onClick={handleShare}
+              className="rounded p-1.5 text-white/30 transition-colors hover:text-white/60"
+            >
+              <Share2 size={15} />
+            </button>
+            {copied && (
+              <span
+                data-testid="copied-toast"
+                className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-white px-2 py-0.5 text-[10px] font-medium text-black shadow animate-fade-in"
+              >
+                Link copied!
+              </span>
+            )}
+          </div>
         </>
       ) : (
         <span className={TECHNICAL_TEXT_CLASS}>No station selected</span>
