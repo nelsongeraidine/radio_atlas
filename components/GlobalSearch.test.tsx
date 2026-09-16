@@ -138,4 +138,25 @@ describe("GlobalSearch", () => {
     fireEvent.keyDown(screen.getByTestId("global-search-input"), { key: "Enter" });
     expect(onSelectCity).toHaveBeenCalledWith(expect.objectContaining({ city: "Tokyo" }));
   });
+
+  it("filters genres and triggers onSelectGenre when clicked", async () => {
+    const onSelectGenre = vi.fn();
+    const onClose = vi.fn();
+    renderWithClient(
+      <GlobalSearch
+        isOpen
+        onClose={onClose}
+        onSelectStation={vi.fn()}
+        onSelectCity={vi.fn()}
+        onSelectCountry={vi.fn()}
+        onSelectGenre={onSelectGenre}
+      />
+    );
+    fireEvent.change(screen.getByTestId("global-search-input"), { target: { value: "Ambient" } });
+    await waitFor(() => expect(screen.getByTestId("global-search-result-genre")).toBeInTheDocument());
+    expect(screen.getByText("Ambient")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("global-search-result-genre"));
+    expect(onSelectGenre).toHaveBeenCalledWith("Ambient");
+    expect(onClose).toHaveBeenCalled();
+  });
 });

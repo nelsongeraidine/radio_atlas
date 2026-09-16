@@ -20,14 +20,15 @@ export function CityOverlay({
   scopeFilter = "LOCAL",
   onScopeChange,
 }: CityOverlayProps) {
-  const [scope, setScope] = useState<"LOCAL" | "WORLD">(scopeFilter);
+  const [internalScope, setInternalScope] = useState<"LOCAL" | "WORLD">(scopeFilter);
+  const scope = onScopeChange ? scopeFilter : internalScope;
 
   if (!city) {
     return null;
   }
 
   function handleScopeToggle(next: "LOCAL" | "WORLD") {
-    setScope(next);
+    setInternalScope(next);
     onScopeChange?.(next);
   }
 

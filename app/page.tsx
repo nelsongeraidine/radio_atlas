@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Shuffle, Search } from "lucide-react";
 import { WorldMap } from "@/components/WorldMap";
 import { CityOverlay } from "@/components/CityOverlay";
@@ -40,6 +40,8 @@ function ExploreContent() {
   const [randomMessage, setRandomMessage] = useState("");
   const [flyToCity, setFlyToCity] = useState<CityMarker | null>(null);
   const [dismissedOnboarding, setDismissedOnboarding] = useState(false);
+  const [scopeFilter, setScopeFilter] = useState<"LOCAL" | "WORLD">("LOCAL");
+  const router = useRouter();
 
   const isClientOnboardingDone = useSyncExternalStore(
     subscribeNoop,
@@ -66,7 +68,10 @@ function ExploreContent() {
       : selection?.type === "country"
       ? selection.countryCode
       : null;
-  const cityName = selection?.type === "city" ? selection.city.city : undefined;
+  const cityName =
+    selection?.type === "city" && scopeFilter === "LOCAL"
+      ? selection.city.city
+      : undefined;
   const { data: selectionStations = [] } = useStations(cityCode, cityName);
 
   // Keep player playlist synced with selection stations
@@ -134,11 +139,16 @@ function ExploreContent() {
   function handleSelectCity(city: CityMarker) {
     setSelection({ type: "city", city });
     setFlyToCity(city);
+    setScopeFilter("LOCAL");
     addCityVisited(city);
   }
 
   function handleSelectCountry(country: Country) {
     setSelection({ type: "country", countryCode: country.countryCode, countryName: country.name });
+  }
+
+  function handleSelectGenre(genre: string) {
+    router.push(`/discover?genre=${encodeURIComponent(genre)}`);
   }
 
   function handleTakeMeSomewhere() {
@@ -158,13 +168,13 @@ function ExploreContent() {
 
       <main className="flex h-full flex-col bg-black">
         {/* ── Header ───────────────────────────────────────── */}
-        <header className="flex items-center justify-between border-b border-white/8 px-6 py-3">
+        <header className="flex items-center justify-between border-b border-white/8 px-4 sm:px-6 py-3">
           {/* Brand + Nav */}
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4 sm:gap-8">
             <span className="text-sm font-semibold uppercase tracking-[0.2em] text-white">
               Radio Atlas
             </span>
-            <nav className="flex items-center gap-6">
+            <nav className="flex items-center gap-4 sm:gap-6">
               <span className={`${TECHNICAL_TEXT_CLASS} border-b border-white pb-0.5 text-white`}>
                 Explore
               </span>
@@ -178,15 +188,16 @@ function ExploreContent() {
           </div>
 
           {/* Right controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Take me somewhere */}
             <button
               type="button"
               onClick={handleTakeMeSomewhere}
-              className={`flex items-center gap-1.5 rounded border border-white/10 px-3 py-1.5 transition-colors hover:bg-white/5 ${TECHNICAL_TEXT_CLASS}`}
+              className={`flex items-center gap-1.5 rounded border border-white/10 px-2.5 sm:px-3 py-1.5 transition-colors hover:bg-white/5 ${TECHNICAL_TEXT_CLASS}`}
             >
               <Shuffle size={11} />
-              Take me somewhere
+              <span className="hidden sm:inline">Take me somewhere</span>
+              <span className="sm:hidden">Shuffle</span>
             </button>
 
             {/* Search */}
@@ -194,19 +205,19 @@ function ExploreContent() {
               type="button"
               data-testid="open-search"
               onClick={() => setIsSearchOpen(true)}
-              className={`flex items-center gap-2 rounded border border-white/10 px-3 py-1.5 transition-colors hover:bg-white/5 ${TECHNICAL_TEXT_CLASS}`}
+              className={`flex items-center gap-2 rounded border border-white/10 px-2.5 sm:px-3 py-1.5 transition-colors hover:bg-white/5 ${TECHNICAL_TEXT_CLASS}`}
             >
               <Search size={12} />
-              Search
-              <kbd className="text-white/30">⌘K</kbd>
+              <span>Search</span>
+              <kbd className="hidden sm:inline text-white/30">⌘K</kbd>
             </button>
           </div>
         </header>
 
         {/* ── Main content ──────────────────────────────────── */}
-        <div className="relative flex flex-1 overflow-hidden">
+        <div className="relative flex flex-1 flex-col md:flex-row overflow-hidden">
           {/* Map */}
-          <div className="flex-1">
+          <div className="flex-1 min-h-[40vh] md:min-h-0">
             <WorldMap
               cities={cities ?? []}
               onSelectCity={handleSelectCity}
@@ -243,13 +254,15 @@ function ExploreContent() {
 
           {/* Side panel */}
           {selection && (
-            <aside className="flex w-80 flex-col overflow-hidden border-l border-white/8 bg-black/60 backdrop-blur-sm">
+            <aside className="flex w-full md:w-80 h-[50vh] md:h-full flex-col overflow-hidden border-t md:border-t-0 md:border-l border-white/8 bg-black/80 md:bg-black/60 backdrop-blur-sm">
               {/* City or Country header */}
               {selection.type === "city" ? (
                 <CityOverlay
                   city={selection.city}
                   allCities={cities ?? []}
                   onSelectCity={handleSelectCity}
+                  scopeFilter={scopeFilter}
+                  onScopeChange={setScopeFilter}
                 />
               ) : (
                 <div className="animate-slide-in-right border-b border-white/8 p-6">
@@ -279,7 +292,7 @@ function ExploreContent() {
                       ? selection.city.countryCode
                       : selection.countryCode
                   }
-                  city={selection.type === "city" ? selection.city.city : undefined}
+                  city={cityName}
                   nowPlayingId={nowPlaying?.id ?? null}
                   onSelectStation={handleSelectStation}
                   isFavorited={isFavorited}
@@ -297,6 +310,7 @@ function ExploreContent() {
           onSelectStation={handleSelectStation}
           onSelectCity={handleSelectCity}
           onSelectCountry={handleSelectCountry}
+          onSelectGenre={handleSelectGenre}
         />
       </main>
     </>

@@ -19,21 +19,22 @@ Especificação de produto e status de implementação em `PRD.md`. Este arquivo
 ```text
 app/
   ├── layout.tsx              # RootLayout com Inter, Providers e Player Global
-  ├── page.tsx                # Página principal (Explore: Mapa + Sidebar + Spotlight)
+  ├── page.tsx                # Página principal (Explore: Mapa + Sidebar + Spotlight + Deep Linking)
   ├── discover/page.tsx       # Página Discover (Carrosséis editoriais)
   ├── library/page.tsx        # Página Library (Favoritos, Histórico, Cidades visitadas)
   └── api/radio/              # Rotas de API Node.js (seed, stations, countries, search)
 components/
   ├── WorldMap.tsx            # Mapa interativo MapLibre GL
-  ├── CityOverlay.tsx         # Cabeçalho da cidade/país selecionado
+  ├── CityOverlay.tsx         # Cabeçalho da cidade/país selecionado com alternância LOCAL / COUNTRY
   ├── StationList.tsx         # Lista de estações da localidade selecionada
   ├── StationCard.tsx         # Card individual de rádio com play e favoritos
-  ├── RadioPlayer.tsx         # Player de áudio fixo e controles de reprodução
+  ├── RadioPlayer.tsx         # Player de áudio com visualizer, volume, playlist e compartilhamento
+  ├── GlobalPlayer.tsx        # Container global montado no RootLayout que mantém o áudio ativo
   ├── AudioVisualizer.tsx     # Visualizador minimalista com animação CSS
-  ├── GlobalSearch.tsx        # Command palette (Ctrl+K / ⌘K)
+  ├── GlobalSearch.tsx        # Command palette (Ctrl+K / ⌘K: rádios, cidades, países, gêneros)
   ├── DiscoverSection.tsx     # Seção de carrossel editorial no Discover
   ├── Spotlight.tsx           # Destaques (Top 5 rádios) na sidebar
-  └── Onboarding.tsx          # Tela de boas-vindas na primeira visita
+  └── Onboarding.tsx          # Tela de boas-vindas na primeira visita (saudação adaptativa)
 lib/
   ├── radio-api/              # Cliente Node.js resiliente com pool de mirrors
   ├── library.ts              # Hooks de persistência local (useFavorites, useRecentlyPlayed, useCitiesVisited)
@@ -50,8 +51,9 @@ lib/
 3. **Resiliência de Stream**: Toda tentativa de reprodução possui timeout (8s), fallback automático para `fallbackUrl` e recuperação graciosa de erros (`TUNING…` → `LIVE` ou `SIGNAL LOST`). A interface nunca trava por rádio offline.
 4. **Padrão de texto técnico unificado**: Usar sempre a constante `TECHNICAL_TEXT_CLASS` de `lib/format.ts` para metadados, títulos técnicos, tags e badges.
 5. **Persistência local**: Favoritos, histórico de reprodução e cidades visitadas são gravados no `localStorage` via hooks dedicados.
-6. **Player Contínuo**: A navegação entre as abas (`/`, `/discover`, `/library`) não interrompe a reprodução da rádio ativa.
-7. **Qualidade contínua**:
+6. **Player Contínuo**: O áudio reside no `GlobalPlayer` no `RootLayout`. A navegação entre as abas (`/`, `/discover`, `/library`) não desmonta o player nem interrompe a reprodução da rádio ativa.
+7. **Responsividade Mobile**: Em telas pequenas (`< 768px`), o Explore organiza-se em coluna vertical (mapa na metade superior, lista na metade inferior), e os controles do player tornam-se compactos sem transbordamento.
+8. **Qualidade contínua**:
    - Rodar testes: `npm test` (deve passar 100% dos testes sem erros);
    - Lint: `npm run lint` (zero warnings e zero erros);
    - Typecheck: `npx tsc --noEmit` (zero erros de tipagem).

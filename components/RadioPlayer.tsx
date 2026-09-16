@@ -163,7 +163,7 @@ export function RadioPlayer({
   return (
     <div
       data-testid="radio-player"
-      className="flex items-center gap-4 border-t border-white/8 bg-black/90 px-5 py-3 backdrop-blur-md"
+      className="flex items-center gap-2 sm:gap-4 border-t border-white/8 bg-black/90 px-3 sm:px-5 py-2 sm:py-3 backdrop-blur-md"
     >
       <audio
         ref={audioRef}
@@ -175,7 +175,7 @@ export function RadioPlayer({
       {station ? (
         <>
           {/* Station logo */}
-          <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded bg-white/5">
+          <div className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0 overflow-hidden rounded bg-white/5">
             {station.favicon ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -196,7 +196,7 @@ export function RadioPlayer({
 
           {/* Station info */}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-white">{station.name}</p>
+            <p className="truncate text-xs sm:text-sm font-medium text-white">{station.name}</p>
             <p className={`${TECHNICAL_TEXT_CLASS} truncate`}>
               {station.countryCode
                 ? formatCityCountry(station.countryCode, station.country)
@@ -206,7 +206,7 @@ export function RadioPlayer({
           </div>
 
           {/* Status + visualizer */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <span
               data-testid="player-status"
               className={`${TECHNICAL_TEXT_CLASS} whitespace-nowrap`}
@@ -289,7 +289,7 @@ export function RadioPlayer({
               value={muted ? 0 : volume}
               onChange={handleVolumeChange}
               aria-label="Volume"
-              className="volume-slider w-20"
+              className="volume-slider hidden w-20 sm:block"
             />
           </div>
 

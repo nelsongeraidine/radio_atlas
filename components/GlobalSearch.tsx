@@ -6,18 +6,41 @@ import { useCityMarkers, useCountries, useStationSearch } from "@/lib/radio-api/
 import { TECHNICAL_TEXT_CLASS, formatCityCountry } from "@/lib/format";
 import type { CityMarker, Country, Station } from "@/lib/radio-api/types";
 
+export const CURATED_GENRES = [
+  "Ambient",
+  "Classical",
+  "Country",
+  "Dance",
+  "Electronic",
+  "Hip Hop",
+  "House",
+  "Indie",
+  "Jazz",
+  "Latin",
+  "Metal",
+  "News",
+  "Pop",
+  "Reggae",
+  "Rock",
+  "Soul",
+  "Talk",
+  "Techno",
+] as const;
+
 interface GlobalSearchProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectStation: (station: Station) => void;
   onSelectCity: (city: CityMarker) => void;
   onSelectCountry: (country: Country) => void;
+  onSelectGenre?: (genre: string) => void;
 }
 
 type ResultItem =
   | { kind: "station"; station: Station }
   | { kind: "city"; city: CityMarker }
-  | { kind: "country"; country: Country };
+  | { kind: "country"; country: Country }
+  | { kind: "genre"; genre: string };
 
 function useDebouncedValue(value: string, delayMs: number): string {
   const [debounced, setDebounced] = useState(value);
@@ -34,6 +57,7 @@ export function GlobalSearch({
   onSelectStation,
   onSelectCity,
   onSelectCountry,
+  onSelectGenre,
 }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -79,6 +103,13 @@ export function GlobalSearch({
     return countries.filter((c) => c.name.toLowerCase().includes(normalizedQuery));
   }, [countries, normalizedQuery]);
 
+  const genreResults = useMemo(() => {
+    if (!normalizedQuery) return [];
+    return CURATED_GENRES.filter((g) =>
+      g.toLowerCase().includes(normalizedQuery)
+    );
+  }, [normalizedQuery]);
+
   const stationResults = useMemo(() => {
     return normalizedQuery && stations ? stations : [];
   }, [normalizedQuery, stations]);
@@ -88,8 +119,9 @@ export function GlobalSearch({
       ...stationResults.map((station): ResultItem => ({ kind: "station", station })),
       ...cityResults.map((city): ResultItem => ({ kind: "city", city })),
       ...countryResults.map((country): ResultItem => ({ kind: "country", country })),
+      ...genreResults.map((genre): ResultItem => ({ kind: "genre", genre })),
     ],
-    [stationResults, cityResults, countryResults]
+    [stationResults, cityResults, countryResults, genreResults]
   );
 
   const [prevResultsLength, setPrevResultsLength] = useState(results.length);
@@ -101,7 +133,8 @@ export function GlobalSearch({
   function selectItem(item: ResultItem) {
     if (item.kind === "station") onSelectStation(item.station);
     else if (item.kind === "city") onSelectCity(item.city);
-    else onSelectCountry(item.country);
+    else if (item.kind === "country") onSelectCountry(item.country);
+    else if (item.kind === "genre") onSelectGenre?.(item.genre);
     onClose();
   }
 
@@ -127,7 +160,12 @@ export function GlobalSearch({
 
   const cityOffset = stationResults.length;
   const countryOffset = stationResults.length + cityResults.length;
-  const hasResults = stationResults.length > 0 || cityResults.length > 0 || countryResults.length > 0;
+  const genreOffset = stationResults.length + cityResults.length + countryResults.length;
+  const hasResults =
+    stationResults.length > 0 ||
+    cityResults.length > 0 ||
+    countryResults.length > 0 ||
+    genreResults.length > 0;
 
   return (
     <div
@@ -260,6 +298,29 @@ export function GlobalSearch({
               </div>
             )}
 
+            {/* GENRES section */}
+            {genreResults.length > 0 && (
+              <div>
+                <div className={`px-5 pb-1 pt-3 ${TECHNICAL_TEXT_CLASS}`}>Genres</div>
+                {genreResults.map((genre, i) => (
+                  <button
+                    key={genre}
+                    type="button"
+                    role="option"
+                    data-testid="global-search-result-genre"
+                    aria-selected={genreOffset + i === activeIndex}
+                    onClick={() => selectItem({ kind: "genre", genre })}
+                    className={`flex w-full items-center justify-between px-5 py-2.5 text-left transition-colors duration-100 ${
+                      genreOffset + i === activeIndex ? "bg-white/8" : "hover:bg-white/5"
+                    }`}
+                  >
+                    <span className="text-sm text-white">{genre}</span>
+                    <span className={TECHNICAL_TEXT_CLASS}>GENRE</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* Empty state */}
             {!isStationsLoading && !hasResults && (
               <div className={`px-5 py-6 text-center ${TECHNICAL_TEXT_CLASS}`}>
@@ -272,7 +333,7 @@ export function GlobalSearch({
         ) : (
           /* Hint when empty */
           <div className={`px-5 py-4 ${TECHNICAL_TEXT_CLASS}`}>
-            Search radios, cities or countries
+            Search radios, cities, countries or genres
           </div>
         )}
       </div>

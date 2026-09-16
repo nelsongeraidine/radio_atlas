@@ -19,11 +19,15 @@ Webapp para descobrir e ouvir rádios ao vivo do mundo todo através de uma expe
 | **Página Discover** | ✅ Concluído | Carrosséis editoriais por região e curadorias (Around the world, Brazil, Jazz, etc.). |
 | **Página Library** | ✅ Concluído | Abas de Favoritos, Tocadas recentemente e Cidades visitadas no `localStorage`. |
 | **Player Base & Visualizer** | ✅ Concluído | Player fixo, visualizador minimalista, controle de volume e playlist (anterior/próxima). |
-| **Player Global Contínuo** | 🔄 Em andamento | Manter reprodução de áudio sem interrupção ao navegar entre Explore, Discover e Library. |
-| **Deep Linking no Explore** | 🔄 Em andamento | Suporte a `/?city=...&cc=...` para carregar cidade/estação ao vir de links ou do Discover. |
-| **Ação Compartilhar Rádio** | 🔄 Em andamento | Botão no player para copiar link direto da estação com feedback visual. |
-| **Busca por Gênero/Idioma** | ⏳ Planejado | Expandir o Command Palette para filtrar por gênero musical e idioma. |
-| **Controle LOCAL / WORLD** | ⏳ Planejado | Alternar raio de priorização na listagem de estações. |
+| **Player Global Contínuo** | ✅ Concluído | Áudio persistente sem interrupção ao navegar entre Explore, Discover e Library via `PlayerContext`. |
+| **Deep Linking no Explore** | ✅ Concluído | Suporte a `/?city=...&cc=...&station=...` para carregar cidade/estação a partir de links ou do Discover. |
+| **Ação Compartilhar Rádio** | ✅ Concluído | Botão no player para copiar link direto da estação com toast de confirmação. |
+| **Controle LOCAL / COUNTRY** | ✅ Concluído | Alternar entre estações locais da cidade selecionada e do país inteiro na sidebar. |
+| **Responsividade Mobile** | ✅ Concluído | Layout adaptativo no smartphone: mapa superior, lista inferior com rolagem e player compacto. |
+| **Busca por Gêneros no Palette** | ✅ Concluído | Categoria GENRES no Command Palette (`Ctrl+K`) para busca direta de estilos musicais. |
+| **Detecção por Timezone** | ✅ Concluído | Saudação adaptativa no Onboarding baseada no fuso horário do visitante sem GPS. |
+| **Filtro de Qualidade de Áudio** | ⏳ Planejado | Filtro por taxa de bitrate mínima (HQ > 128 kbps) na listagem e discover. |
+| **Histórico de Busca Recente** | ⏳ Planejado | Memorizar as últimas consultas pesquisadas no Command Palette. |
 
 ---
 
@@ -40,30 +44,33 @@ Interface premium, minimalista, cinematográfica, estilo app editorial de músic
 
 - **Header global**: `RADIO ATLAS` + navegação (Explore `/`, Discover `/discover`, Library `/library`) à esquerda.
 - **Ações rápidas**: Botão "Take me somewhere" (Shuffle) e busca rápida "Search ⌘K".
-- **Comportamento**: A navegação entre abas não deve interromper a reprodução de áudio do usuário (Player Global).
+- **Comportamento**: A navegação entre abas não interrompe a reprodução de áudio do usuário (Player Global montado no `RootLayout`).
 
 ---
 
 ## 5. Tela Explore (Principal)
 
 - Mapa mundial escuro vetorial (MapLibre GL com CARTO Dark Matter): arrastar, zoom, marcadores de cidades curadas.
-- Ao clicar em uma cidade ou país:
+- **Layout responsivo**:
+  - *Desktop*: mapa em tela cheia com painel lateral flutuante ou acoplado à direita (`w-80`).
+  - *Mobile*: mapa na metade superior da tela e painel de estações na metade inferior (`flex-col md:flex-row`), permitindo rolar a lista sem perder a visualização do mapa.
+- **Ao selecionar localidade**:
   - Voo suave da câmera (`flyTo`);
-  - Abertura do painel lateral com nome da localidade e contagem;
+  - **Controle LOCAL / COUNTRY**: toggle no topo da sidebar para alternar entre as estações da cidade selecionada e as estações populares de todo o país;
   - **Spotlight**: seleção das top 5 rádios locais prontas para tocar em 1 clique;
   - **StationList**: lista completa de estações reais com status, tags, bitrate e botão de favoritar.
-- Suporte a deep links via query params (`/?city=Paris&cc=FR` ou `/?cc=JP`), permitindo abrir cidades diretamente a partir do Discover, Library ou links compartilhados.
+- **Deep links**: lê parâmetros da URL (`/?city=Paris&cc=FR` ou `/?cc=JP` ou `/?station=id`), voando até a localidade e iniciando a reprodução automaticamente.
 
 ---
 
 ## 6. Player de Áudio
 
 - Fixo na parte inferior da interface, persistente entre todas as páginas.
-- **Informações**: Nome da rádio, localidade (`CIDADE, PAÍS`), bitrate e tag técnica.
+- **Informações**: Nome da rádio, localidade (`CIDADE, PAÍS`), bitrate e status.
 - **Controles**:
   - Play / Pause;
   - Anterior / Próxima (navegação de playlist);
-  - Controle de volume com mute/unmute;
+  - Controle de volume com mute/unmute (adaptado para visualização compacta no mobile);
   - Favoritar (coração conectado à Library);
   - Compartilhar rádio (copia link direto com toast de confirmação);
   - Visualizador de ondas sonoras CSS minimalista (`AudioVisualizer`).
@@ -78,8 +85,8 @@ Interface premium, minimalista, cinematográfica, estilo app editorial de músic
 
 Página editorial com carrosséis horizontais por seção curada:
 - *Around the world*, *Brazil*, *Electronic*, *Jazz*, *Europe*, *Late night*, *Asia*, *News & Talk*, *Something different*.
-- Clicar em uma estação toca imediatamente e adiciona ao histórico.
-- Clicar na localidade redireciona ao Explore com a cidade/país focado.
+- Clicar em uma estação toca imediatamente usando o player global.
+- Clicar na localidade redireciona ao Explore com a cidade/país focado via deep link.
 
 ---
 
@@ -98,6 +105,7 @@ Atalho `Ctrl+K` / `⌘K`:
 - Busca ao vivo por nome de estação no Radio Browser API (com debounce de 300ms e skeleton loading);
 - Busca instantânea em cidades curadas (`data/cities.json`);
 - Busca instantânea na lista de países da Radio Browser;
+- Categoria **GENRES**: busca direta por estilos e tags (Jazz, Ambient, Electronic, Rock, Classical, etc.);
 - Navegação completa por teclado (setas para cima/baixo, Enter para selecionar, Esc para fechar).
 
 ---
@@ -115,5 +123,6 @@ Atalho `Ctrl+K` / `⌘K`:
 
 - Apresentação na primeira visita:
   - "A world of sound." → "Thousands of stations. One planet.";
+  - Detecção local opcional por fuso horário (*"Good evening from Brazil."*);
   - Botão "Start exploring" ou ação de "Skip";
   - Persiste conclusão em `localStorage` (`radio-atlas:onboarding-done`).

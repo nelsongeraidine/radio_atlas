@@ -35,6 +35,10 @@ export default function LibraryPage() {
     router.push(`/?cc=${encodeURIComponent(country.countryCode)}`);
   }
 
+  function handleSelectGenre(genre: string) {
+    router.push(`/discover?genre=${encodeURIComponent(genre)}`);
+  }
+
   const TABS: { id: Tab; label: string; count: number }[] = [
     { id: "favorites", label: "Favorites", count: favorites.length },
     { id: "recent", label: "Recently played", count: recentlyPlayed.length },
@@ -167,6 +171,7 @@ export default function LibraryPage() {
         onSelectStation={handleSelectStation}
         onSelectCity={handleSelectCity}
         onSelectCountry={handleSelectCountry}
+        onSelectGenre={handleSelectGenre}
       />
     </main>
   );

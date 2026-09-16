@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { CityOverlay } from "./CityOverlay";
 import type { CityMarker } from "@/lib/radio-api/types";
 
@@ -28,5 +28,12 @@ describe("CityOverlay", () => {
   it("uses singular 'station' for a count of exactly 1", () => {
     render(<CityOverlay city={{ ...city, stationCount: 1 }} />);
     expect(screen.getByText("1 station")).toBeInTheDocument();
+  });
+
+  it("fires onScopeChange when LOCAL / WORLD is toggled", () => {
+    const onScopeChange = vi.fn();
+    render(<CityOverlay city={city} onScopeChange={onScopeChange} />);
+    fireEvent.click(screen.getByText("WORLD"));
+    expect(onScopeChange).toHaveBeenCalledWith("WORLD");
   });
 });

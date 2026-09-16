@@ -41,6 +41,13 @@ export default function DiscoverPage() {
     router.push(`/?cc=${encodeURIComponent(country.countryCode)}`);
   }
 
+  function handleSelectGenre(genre: string) {
+    const el = document.getElementById(genre.toLowerCase());
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  }
+
   return (
     <main className="flex h-full flex-col bg-black">
       {/* Header */}
@@ -98,6 +105,7 @@ export default function DiscoverPage() {
         onSelectStation={handleSelectStation}
         onSelectCity={handleSelectCity}
         onSelectCountry={handleSelectCountry}
+        onSelectGenre={handleSelectGenre}
       />
     </main>
   );

@@ -9,12 +9,69 @@ const LINES = [
   "Thousands of stations.\nOne planet.",
 ] as const;
 
+export function getTimezoneGreeting(date = new Date()): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    const hour = date.getHours();
+    let timeOfDay = "Good day";
+    if (hour >= 5 && hour < 12) {
+      timeOfDay = "Good morning";
+    } else if (hour >= 12 && hour < 18) {
+      timeOfDay = "Good afternoon";
+    } else if (hour >= 18 && hour < 23) {
+      timeOfDay = "Good evening";
+    } else {
+      timeOfDay = "Late night";
+    }
+
+    const tzCountryMap: Record<string, string> = {
+      "America/Sao_Paulo": "Brazil",
+      "America/Bahia": "Brazil",
+      "America/Manaus": "Brazil",
+      "America/Fortaleza": "Brazil",
+      "America/Recife": "Brazil",
+      "America/Belem": "Brazil",
+      "America/Cuiaba": "Brazil",
+      "America/Rio_Branco": "Brazil",
+      "America/New_York": "the United States",
+      "America/Chicago": "the United States",
+      "America/Denver": "the United States",
+      "America/Los_Angeles": "the United States",
+      "Europe/London": "the United Kingdom",
+      "Europe/Paris": "France",
+      "Europe/Berlin": "Germany",
+      "Europe/Rome": "Italy",
+      "Europe/Madrid": "Spain",
+      "Europe/Lisbon": "Portugal",
+      "Asia/Tokyo": "Japan",
+      "Asia/Seoul": "South Korea",
+      "Asia/Shanghai": "China",
+      "Asia/Kolkata": "India",
+      "Australia/Sydney": "Australia",
+      "Australia/Melbourne": "Australia",
+      "Pacific/Auckland": "New Zealand",
+      "America/Toronto": "Canada",
+      "America/Mexico_City": "Mexico",
+      "America/Argentina/Buenos_Aires": "Argentina",
+    };
+
+    const location = tzCountryMap[tz];
+    if (location) {
+      return `${timeOfDay} from ${location}.`;
+    }
+    return `${timeOfDay}.`;
+  } catch {
+    return "Welcome.";
+  }
+}
+
 interface OnboardingProps {
   onDone: () => void;
 }
 
 export function Onboarding({ onDone }: OnboardingProps) {
   const [phase, setPhase] = useState<0 | 1 | 2>(0); // 0=line1, 1=line2, 2=cta
+  const [greeting] = useState(() => (typeof window !== "undefined" ? getTimezoneGreeting() : ""));
 
   // Advance through phases automatically
   useEffect(() => {
@@ -25,7 +82,8 @@ export function Onboarding({ onDone }: OnboardingProps) {
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  function handleStart() {
+  function handleStart(e?: React.MouseEvent) {
+    e?.stopPropagation();
     localStorage.setItem(ONBOARDING_KEY, "1");
     onDone();
   }
@@ -33,7 +91,7 @@ export function Onboarding({ onDone }: OnboardingProps) {
   return (
     <div
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black"
-      onClick={phase < 2 ? undefined : handleStart}
+      onClick={phase < 2 ? undefined : (e) => { if (e.target === e.currentTarget) handleStart(e); }}
     >
       {/* Skip button */}
       <button
@@ -46,6 +104,16 @@ export function Onboarding({ onDone }: OnboardingProps) {
 
       {/* Text sequence */}
       <div className="relative flex flex-col items-center gap-6 text-center">
+        {/* Adaptive greeting */}
+        {greeting && (
+          <span
+            data-testid="onboarding-greeting"
+            className="text-xs uppercase tracking-[0.25em] text-white/40 transition-opacity duration-500"
+          >
+            {greeting}
+          </span>
+        )}
+
         {/* Line 1 */}
         <p
           className={`text-3xl font-light tracking-tight text-white transition-all duration-700 ${
