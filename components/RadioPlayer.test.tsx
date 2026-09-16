@@ -32,12 +32,12 @@ describe("RadioPlayer", () => {
 
   it("shows TUNING… then TUNED IN once the stream can play", async () => {
     render(<RadioPlayer station={station} />);
-    expect(screen.getByTestId("player-status")).toHaveTextContent("TUNING…");
+    expect(screen.getByTestId("player-status")).toHaveTextContent("TUNING");
     const audio = screen.getByTestId("radio-player").querySelector("audio")!;
     act(() => {
       audio.dispatchEvent(new Event("canplay"));
     });
-    expect(screen.getByTestId("player-status")).toHaveTextContent("TUNED IN");
+    expect(screen.getByTestId("player-status")).toHaveTextContent("LIVE");
   });
 
   it("falls back to fallbackUrl on stream error, then shows SIGNAL LOST if that fails too", async () => {
@@ -97,12 +97,12 @@ describe("RadioPlayer", () => {
       act(() => {
         audio.dispatchEvent(new Event("canplay"));
       });
-      expect(screen.getByTestId("player-status")).toHaveTextContent("TUNED IN");
+      expect(screen.getByTestId("player-status")).toHaveTextContent("LIVE");
 
       act(() => {
         vi.advanceTimersByTime(8000);
       });
-      expect(screen.getByTestId("player-status")).toHaveTextContent("TUNED IN");
+      expect(screen.getByTestId("player-status")).toHaveTextContent("LIVE");
     } finally {
       vi.useRealTimers();
     }

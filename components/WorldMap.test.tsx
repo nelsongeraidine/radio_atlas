@@ -10,6 +10,7 @@ class FakeMap {
   on = vi.fn();
   getLayer = vi.fn().mockReturnValue(undefined);
   setLayoutProperty = vi.fn();
+  flyTo = vi.fn();
   constructor(public options: unknown) {
     mapInstances.push(this);
   }

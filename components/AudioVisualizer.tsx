@@ -2,16 +2,21 @@ interface AudioVisualizerProps {
   active: boolean;
 }
 
-const BAR_HEIGHTS_PX = [6, 10, 8];
+// Five bars with staggered CSS animations defined in globals.css.
+// Using CSS classes (not inline styles) lets the browser GPU-composite the
+// animation without triggering layout recalcs on every frame.
+const BARS = ["bar-1", "bar-2", "bar-3", "bar-4", "bar-5"] as const;
 
 export function AudioVisualizer({ active }: AudioVisualizerProps) {
   return (
-    <div data-testid="audio-visualizer" aria-hidden="true" className="flex h-4 items-end gap-0.5">
-      {BAR_HEIGHTS_PX.map((height, i) => (
+    <div data-testid="audio-visualizer" aria-hidden="true" className="flex h-4 items-end gap-[2px]">
+      {BARS.map((cls) => (
         <span
-          key={i}
-          className={`w-0.5 bg-white/70 ${active ? "animate-pulse" : ""}`}
-          style={{ height: active ? `${height}px` : "3px" }}
+          key={cls}
+          className={`w-[2px] rounded-full bg-white/70 transition-all duration-300 ${
+            active ? cls : ""
+          }`}
+          style={{ height: active ? undefined : "3px" }}
         />
       ))}
     </div>

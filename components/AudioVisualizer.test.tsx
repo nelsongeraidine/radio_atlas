@@ -6,12 +6,12 @@ describe("AudioVisualizer", () => {
   it("renders bars that animate when active", () => {
     render(<AudioVisualizer active />);
     const visualizer = screen.getByTestId("audio-visualizer");
-    expect(visualizer.querySelectorAll("span")[0]).toHaveClass("animate-pulse");
+    expect(visualizer.querySelectorAll("span")[0]).toHaveClass("bar-1");
   });
 
   it("renders static bars when inactive", () => {
     render(<AudioVisualizer active={false} />);
     const visualizer = screen.getByTestId("audio-visualizer");
-    expect(visualizer.querySelectorAll("span")[0]).not.toHaveClass("animate-pulse");
+    expect(visualizer.querySelectorAll("span")[0]).not.toHaveClass("bar-1");
   });
 });

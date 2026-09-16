@@ -9,6 +9,7 @@ import { formatCityCountry } from "@/lib/format";
 interface WorldMapProps {
   cities: CityMarker[];
   onSelectCity: (city: CityMarker) => void;
+  flyToCity?: CityMarker | null;
 }
 
 const STYLE_URL = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
@@ -32,7 +33,7 @@ const HIDDEN_LAYER_IDS = [
   "poi_park",
 ];
 
-export function WorldMap({ cities, onSelectCity }: WorldMapProps) {
+export function WorldMap({ cities, onSelectCity, flyToCity }: WorldMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<MapLibreMarker[]>([]);
@@ -60,6 +61,18 @@ export function WorldMap({ cities, onSelectCity }: WorldMapProps) {
     };
   }, []);
 
+  // Fly to a city when selection comes from GlobalSearch or "Take me somewhere"
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !flyToCity) return;
+    map.flyTo({
+      center: [flyToCity.lon, flyToCity.lat],
+      zoom: 9,
+      duration: 1800,
+      essential: true,
+    });
+  }, [flyToCity]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -70,8 +83,11 @@ export function WorldMap({ cities, onSelectCity }: WorldMapProps) {
       el.type = "button";
       el.setAttribute("data-testid", `city-marker-${city.city}`);
       el.setAttribute("aria-label", formatCityCountry(city.city, city.countryName));
+      // Outer wrapper for pulse ring
       el.className =
-        "h-2.5 w-2.5 rounded-full bg-white shadow-[0_0_6px_2px_rgba(255,255,255,0.6)] transition-transform hover:scale-150";
+        "relative flex h-3 w-3 items-center justify-center rounded-full marker-pulse";
+      // Inner dot
+      el.innerHTML = `<span class="block h-2 w-2 rounded-full bg-white shadow-[0_0_4px_2px_rgba(255,255,255,0.5)] transition-transform duration-200 hover:scale-150"></span>`;
       el.addEventListener("click", () => onSelectCity(city));
       return new MapLibreMarker({ element: el }).setLngLat([city.lon, city.lat]).addTo(map);
     });

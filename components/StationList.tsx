@@ -10,9 +10,18 @@ interface StationListProps {
   city?: string | null;
   nowPlayingId: string | null;
   onSelectStation: (station: Station) => void;
+  isFavorited?: (station: Station) => boolean;
+  onToggleFavorite?: (station: Station) => void;
 }
 
-export function StationList({ countryCode, city, nowPlayingId, onSelectStation }: StationListProps) {
+export function StationList({
+  countryCode,
+  city,
+  nowPlayingId,
+  onSelectStation,
+  isFavorited,
+  onToggleFavorite,
+}: StationListProps) {
   const { data, isLoading, isError } = useStations(countryCode, city);
 
   if (!countryCode) {
@@ -22,8 +31,14 @@ export function StationList({ countryCode, city, nowPlayingId, onSelectStation }
   if (isLoading) {
     return (
       <div data-testid="station-list-skeleton" className="flex flex-col gap-2 p-4">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-12 w-full animate-pulse rounded bg-white/5" />
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-center gap-3">
+            <div className="h-9 w-9 animate-pulse rounded bg-white/5" />
+            <div className="flex flex-1 flex-col gap-1.5">
+              <div className="h-2.5 w-3/4 animate-pulse rounded bg-white/5" />
+              <div className="h-2 w-1/2 animate-pulse rounded bg-white/5" />
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -53,6 +68,8 @@ export function StationList({ countryCode, city, nowPlayingId, onSelectStation }
           station={station}
           isPlaying={station.id === nowPlayingId}
           onPlay={onSelectStation}
+          isFavorited={isFavorited?.(station)}
+          onToggleFavorite={onToggleFavorite}
         />
       ))}
     </div>

@@ -48,6 +48,7 @@ describe("ExplorePage", () => {
     );
     window.HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
     window.HTMLMediaElement.prototype.pause = vi.fn();
+    localStorage.setItem("radio-atlas:onboarding-done", "1");
   });
 
   it("renders the map, header, and player with no station selected", async () => {
@@ -58,7 +59,7 @@ describe("ExplorePage", () => {
         <ExplorePage />
       </QueryClientProvider>
     );
-    expect(screen.getByText("Radio Atlas")).toBeInTheDocument();
+    expect(screen.getByRole("banner")).toHaveTextContent("Radio Atlas");
     expect(screen.getByTestId("world-map")).toBeInTheDocument();
     expect(screen.getByText("No station selected")).toBeInTheDocument();
   });
@@ -137,7 +138,19 @@ describe("ExplorePage", () => {
     fireEvent.change(screen.getByTestId("global-search-input"), { target: { value: "Japan" } });
     await waitFor(() => expect(screen.getByTestId("global-search-result-country")).toBeInTheDocument());
     fireEvent.click(screen.getByTestId("global-search-result-country"));
-    expect(screen.getByText("Japan")).toBeInTheDocument();
+    expect(screen.getByText(/Japan/)).toBeInTheDocument();
     expect(screen.queryByTestId("global-search-overlay")).not.toBeInTheDocument();
+  });
+
+  it("shows onboarding when user visits for the first time", async () => {
+    localStorage.removeItem("radio-atlas:onboarding-done");
+    const { default: ExplorePage } = await import("./page");
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <ExplorePage />
+      </QueryClientProvider>
+    );
+    expect(screen.getByText("A world of sound.")).toBeInTheDocument();
   });
 });

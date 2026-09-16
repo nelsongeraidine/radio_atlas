@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useCityMarkers, useCountries, useStationSearch } from "@/lib/radio-api/hooks";
 import { TECHNICAL_TEXT_CLASS, formatCityCountry } from "@/lib/format";
 import type { CityMarker, Country, Station } from "@/lib/radio-api/types";
@@ -37,6 +37,15 @@ export function GlobalSearch({
 }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      setQuery("");
+      setActiveIndex(0);
+    }
+  }
+
   const inputRef = useRef<HTMLInputElement | null>(null);
   const debouncedQuery = useDebouncedValue(query, 300);
 
@@ -50,9 +59,9 @@ export function GlobalSearch({
 
   useEffect(() => {
     if (isOpen) {
-      setQuery("");
-      setActiveIndex(0);
-      inputRef.current?.focus();
+      // Small delay so the animation starts before focus-stealing the input
+      const t = setTimeout(() => inputRef.current?.focus(), 50);
+      return () => clearTimeout(t);
     }
   }, [isOpen]);
 
@@ -70,7 +79,9 @@ export function GlobalSearch({
     return countries.filter((c) => c.name.toLowerCase().includes(normalizedQuery));
   }, [countries, normalizedQuery]);
 
-  const stationResults = normalizedQuery && stations ? stations : [];
+  const stationResults = useMemo(() => {
+    return normalizedQuery && stations ? stations : [];
+  }, [normalizedQuery, stations]);
 
   const results: ResultItem[] = useMemo(
     () => [
@@ -81,9 +92,11 @@ export function GlobalSearch({
     [stationResults, cityResults, countryResults]
   );
 
-  useEffect(() => {
+  const [prevResultsLength, setPrevResultsLength] = useState(results.length);
+  if (results.length !== prevResultsLength) {
+    setPrevResultsLength(results.length);
     setActiveIndex(0);
-  }, [results.length]);
+  }
 
   function selectItem(item: ResultItem) {
     if (item.kind === "station") onSelectStation(item.station);
@@ -114,15 +127,18 @@ export function GlobalSearch({
 
   const cityOffset = stationResults.length;
   const countryOffset = stationResults.length + cityResults.length;
+  const hasResults = stationResults.length > 0 || cityResults.length > 0 || countryResults.length > 0;
 
   return (
     <div
       data-testid="global-search-overlay"
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 pt-32 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 pt-24 backdrop-blur-md"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-xl rounded-lg border border-white/10 bg-black shadow-2xl">
-        <div className="flex items-center gap-3 border-b border-white/10 px-6 py-5">
-          <Search className="h-4 w-4 text-white/40" />
+      <div className="animate-fade-in w-full max-w-xl overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] shadow-2xl">
+        {/* Input bar */}
+        <div className="flex items-center gap-3 border-b border-white/8 px-5 py-4">
+          <Search className="h-4 w-4 flex-shrink-0 text-white/30" />
           <input
             ref={inputRef}
             data-testid="global-search-input"
@@ -131,83 +147,134 @@ export function GlobalSearch({
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Find a frequency…"
-            className="w-full bg-transparent text-lg text-white placeholder-white/40 outline-none"
+            className="min-w-0 flex-1 bg-transparent text-base text-white placeholder-white/25 outline-none"
           />
+          {query && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => setQuery("")}
+              className="flex-shrink-0 text-white/30 hover:text-white/60"
+            >
+              <X size={14} />
+            </button>
+          )}
+          <kbd className={`flex-shrink-0 rounded border border-white/10 px-1.5 py-0.5 ${TECHNICAL_TEXT_CLASS}`}>
+            ESC
+          </kbd>
         </div>
+
+        {/* Results */}
         {normalizedQuery ? (
-          <div className="max-h-96 overflow-y-auto">
-            {stationResults.length > 0 ? (
+          <div className="max-h-[400px] overflow-y-auto">
+            {/* RADIOS section */}
+            {isStationsLoading ? (
+              <div data-testid="global-search-radios-skeleton" className="px-5 py-3">
+                <div className={`mb-2 ${TECHNICAL_TEXT_CLASS}`}>Radios</div>
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="mb-2 h-8 animate-pulse rounded bg-white/5" />
+                ))}
+              </div>
+            ) : null}
+            {isStationsError && (
+              <div className={`px-5 py-3 ${TECHNICAL_TEXT_CLASS}`}>Signal lost. Try again.</div>
+            )}
+            {stationResults.length > 0 && (
               <div>
-                <div className={`px-6 pt-3 ${TECHNICAL_TEXT_CLASS}`}>Radios</div>
+                <div className={`px-5 pb-1 pt-3 ${TECHNICAL_TEXT_CLASS}`}>Radios</div>
                 {stationResults.map((station, i) => (
                   <button
                     key={station.id}
                     type="button"
+                    role="option"
                     data-testid="global-search-result-station"
                     aria-selected={i === activeIndex}
                     onClick={() => selectItem({ kind: "station", station })}
-                    className={`flex w-full items-center justify-between px-6 py-2 text-left ${
-                      i === activeIndex ? "bg-white/10" : ""
+                    className={`flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors duration-100 ${
+                      i === activeIndex ? "bg-white/8" : "hover:bg-white/5"
                     }`}
                   >
-                    <span className="text-white">{station.name}</span>
-                    <span className={TECHNICAL_TEXT_CLASS}>
+                    {station.favicon && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={station.favicon}
+                        alt=""
+                        aria-hidden="true"
+                        className="h-6 w-6 rounded object-cover"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                      />
+                    )}
+                    <span className="min-w-0 flex-1 truncate text-sm text-white">{station.name}</span>
+                    <span className={`flex-shrink-0 ${TECHNICAL_TEXT_CLASS}`}>
                       {station.countryCode}
-                      {station.tags[0] ? ` · ${station.tags[0]}` : ""}
+                      {station.tags[0] ? ` · ${station.tags[0].toUpperCase()}` : ""}
                     </span>
                   </button>
                 ))}
               </div>
-            ) : null}
-            {isStationsLoading ? (
-              <div data-testid="global-search-radios-skeleton" className="px-6 py-2">
-                <div className="h-4 w-32 animate-pulse rounded bg-white/5" />
-              </div>
-            ) : null}
-            {isStationsError ? (
-              <div className={`px-6 py-2 ${TECHNICAL_TEXT_CLASS}`}>Signal lost. Try again.</div>
-            ) : null}
-            {cityResults.length > 0 ? (
+            )}
+
+            {/* CITY section */}
+            {cityResults.length > 0 && (
               <div>
-                <div className={`px-6 pt-3 ${TECHNICAL_TEXT_CLASS}`}>City</div>
+                <div className={`px-5 pb-1 pt-3 ${TECHNICAL_TEXT_CLASS}`}>City</div>
                 {cityResults.map((city, i) => (
                   <button
                     key={`${city.countryCode}-${city.city}`}
                     type="button"
+                    role="option"
                     data-testid="global-search-result-city"
                     aria-selected={cityOffset + i === activeIndex}
                     onClick={() => selectItem({ kind: "city", city })}
-                    className={`flex w-full items-center justify-between px-6 py-2 text-left ${
-                      cityOffset + i === activeIndex ? "bg-white/10" : ""
+                    className={`flex w-full items-center justify-between px-5 py-2.5 text-left transition-colors duration-100 ${
+                      cityOffset + i === activeIndex ? "bg-white/8" : "hover:bg-white/5"
                     }`}
                   >
-                    <span className="text-white">{city.city}.</span>
+                    <span className="text-sm text-white">{city.city}.</span>
                     <span className={TECHNICAL_TEXT_CLASS}>{formatCityCountry(city.city, city.countryName)}</span>
                   </button>
                 ))}
               </div>
-            ) : null}
-            {countryResults.length > 0 ? (
+            )}
+
+            {/* COUNTRY section */}
+            {countryResults.length > 0 && (
               <div>
-                <div className={`px-6 pt-3 ${TECHNICAL_TEXT_CLASS}`}>Country</div>
+                <div className={`px-5 pb-1 pt-3 ${TECHNICAL_TEXT_CLASS}`}>Country</div>
                 {countryResults.map((country, i) => (
                   <button
                     key={country.countryCode}
                     type="button"
+                    role="option"
                     data-testid="global-search-result-country"
                     aria-selected={countryOffset + i === activeIndex}
                     onClick={() => selectItem({ kind: "country", country })}
-                    className={`flex w-full items-center justify-between px-6 py-2 text-left ${
-                      countryOffset + i === activeIndex ? "bg-white/10" : ""
+                    className={`flex w-full items-center justify-between px-5 py-2.5 text-left transition-colors duration-100 ${
+                      countryOffset + i === activeIndex ? "bg-white/8" : "hover:bg-white/5"
                     }`}
                   >
-                    <span className="text-white">{country.name}</span>
+                    <span className="text-sm text-white">{country.name}</span>
+                    <span className={TECHNICAL_TEXT_CLASS}>{country.stationCount} stations</span>
                   </button>
                 ))}
               </div>
-            ) : null}
+            )}
+
+            {/* Empty state */}
+            {!isStationsLoading && !hasResults && (
+              <div className={`px-5 py-6 text-center ${TECHNICAL_TEXT_CLASS}`}>
+                No results for &ldquo;{query}&rdquo;
+              </div>
+            )}
+
+            <div className="h-2" />
           </div>
-        ) : null}
+        ) : (
+          /* Hint when empty */
+          <div className={`px-5 py-4 ${TECHNICAL_TEXT_CLASS}`}>
+            Search radios, cities or countries
+          </div>
+        )}
       </div>
     </div>
   );
