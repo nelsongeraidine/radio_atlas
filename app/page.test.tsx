@@ -51,4 +51,41 @@ describe("ExplorePage", () => {
     expect(screen.getByTestId("world-map")).toBeInTheDocument();
     expect(screen.getByText("No station selected")).toBeInTheDocument();
   });
+
+  it("shows a discreet loading indicator while city markers are being fetched", async () => {
+    let resolveFetch: (value: unknown) => void;
+    fetchMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveFetch = resolve;
+      })
+    );
+    const { default: ExplorePage } = await import("./page");
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <ExplorePage />
+      </QueryClientProvider>
+    );
+
+    expect(screen.getByTestId("city-markers-loading")).toBeInTheDocument();
+
+    resolveFetch!({
+      ok: true,
+      json: async () => [],
+    });
+    expect(await screen.findByTestId("world-map")).toBeInTheDocument();
+  });
+
+  it("shows a discreet error indicator when city markers fail to load", async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 502, json: async () => ({ error: "down" }) });
+    const { default: ExplorePage } = await import("./page");
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <ExplorePage />
+      </QueryClientProvider>
+    );
+
+    expect(await screen.findByTestId("city-markers-error")).toBeInTheDocument();
+  });
 });

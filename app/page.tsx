@@ -6,10 +6,11 @@ import { CityOverlay } from "@/components/CityOverlay";
 import { StationList } from "@/components/StationList";
 import { RadioPlayer } from "@/components/RadioPlayer";
 import { useCityMarkers } from "@/lib/radio-api/hooks";
+import { TECHNICAL_TEXT_CLASS } from "@/lib/format";
 import type { CityMarker, Station } from "@/lib/radio-api/types";
 
 export default function ExplorePage() {
-  const { data: cities } = useCityMarkers();
+  const { data: cities, isLoading, isError } = useCityMarkers();
   const [selectedCity, setSelectedCity] = useState<CityMarker | null>(null);
   const [nowPlaying, setNowPlaying] = useState<Station | null>(null);
 
@@ -22,6 +23,22 @@ export default function ExplorePage() {
         <div className="flex-1">
           <WorldMap cities={cities ?? []} onSelectCity={setSelectedCity} />
         </div>
+        {isLoading ? (
+          <div
+            data-testid="city-markers-loading"
+            className={`pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded bg-black/70 px-3 py-1 ${TECHNICAL_TEXT_CLASS}`}
+          >
+            Resolving stations…
+          </div>
+        ) : null}
+        {isError ? (
+          <div
+            data-testid="city-markers-error"
+            className={`pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded bg-black/70 px-3 py-1 ${TECHNICAL_TEXT_CLASS}`}
+          >
+            Signal lost. Try again.
+          </div>
+        ) : null}
         {selectedCity ? (
           <aside className="w-80 overflow-y-auto border-l border-white/10">
             <CityOverlay city={selectedCity} />
