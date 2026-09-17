@@ -1,124 +1,142 @@
 # Radio Atlas 🌍📻
 
-> **A world of sound. Thousands of stations. One planet.**  
-> An immersive, geographical web application to explore and listen to live radio stations around the globe in real time.
+> **Um mundo de sons. Milhares de estações. Um só planeta.**  
+> Uma aplicação web imersiva e cinematográfica para explorar e ouvir rádios ao vivo de todo o globo terrestre em tempo real.
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue?style=flat&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38bdf8?style=flat&logo=tailwindcss)](https://tailwindcss.com/)
-[![Tests](https://img.shields.io/badge/Tests-Vitest%20%28100%25%20Passing%29-brightgreen?style=flat&logo=vitest)](https://vitest.dev/)
+[![Testes](https://img.shields.io/badge/Testes-Vitest%20(100%25%20Aprovados)-brightgreen?style=flat&logo=vitest)](https://vitest.dev/)
 
 ---
 
-## ✨ Features
+## ✨ Principais Funcionalidades
 
-- **Dark Vector Basemap**: Interactive, clean cartography powered by MapLibre GL and CARTO Dark Matter tiles, featuring smooth cinematic camera movements (`flyTo`) and responsive city markers.
-- **Real-World Airwaves**: Real-time streaming powered by the community-driven [Radio Browser API](https://www.radio-browser.info/) via an internal, resilient Node.js API proxy with automated mirror failover.
-- **Persistent Global Audio**: Audio playback lives in the root layout (`GlobalPlayer`), allowing seamless, uninterrupted listening while navigating between **Explore**, **Discover**, and **Library**.
-- **Stream Resilience**: Automatic 8-second connection timeout, seamless fallback URL switching, and graceful recovery (`TUNING…` → `LIVE` or `SIGNAL LOST`).
-- **Command Palette (`Ctrl+K` / `⌘K`)**: Instant search across radio station names, curated cities, countries, and musical genres (`Ambient`, `Jazz`, `Electronic`, `Rock`, etc.), with recent search history stored locally.
-- **LOCAL vs. WORLD Scope**: Easily switch between local stations in the selected city and top stations across the entire country.
-- **HQ Bitrate Filter**: Toggle `HQ ONLY (≥128K)` to instantly filter out low-bandwidth streams and focus on high-fidelity broadcasts.
-- **Editorial Discover**: Curated thematic carousels (*Around the World*, *Brazil*, *Electronic*, *Jazz*, *Europe*, *Late Night*, *Asia*, etc.).
-- **Local Library**: Client-side persistence (`localStorage`) for Favorites, Recently Played stations, and Cities Visited.
-- **Adaptive Timezone Onboarding**: Welcoming intro that detects local time of day and region from the visitor's timezone without requesting intrusive GPS permissions.
-- **Refined Mobile Experience**: Responsive layout on smartphones (`flex-col md:flex-row`) with top map viewport, bottom station list, and compact audio player controls.
-- **Deep Linking & Sharing**: Copy direct links to any station with one click and auto-play via query parameters (`/?city=...&cc=...&station=...`).
+- 🌐 **Globo 3D e Mapa 2D com Alternância Fluida**:
+  - **Modo Globo 3D**: Projeção esférica realista com cenário espacial completo: mais de 250 estrelas cintilantes animadas em Canvas GPU, meteoros/estrelas cadentes, Lua com crateras e linha terminadora dia/noite, além de anel de brilho atmosférico azul.
+  - **Modo 2D Mercator**: Visão plana clássica para navegação rápida e ampla.
+- 📻 **Streaming Global Real e Conexões Resilientes**:
+  - Dados em tempo real fornecidos pela comunidade [Radio Browser API](https://www.radio-browser.info/) através de uma camada de proxy própria no Node.js com rotação automática de servidores espelho (*DNS mirror pool*).
+  - Timeout inteligente de conexão de 8 segundos, transição automática para link alternativo (*fallback*) e recuperação graciosa de sinal.
+- 🎵 **Player Contínuo e Persistente**:
+  - O áudio nunca para: navegue livremente entre **Explore**, **Discover** e **Library** sem interrupção de reprodução.
+  - Integração com **MediaSession API** (fones Bluetooth, controles de mídia do teclado e central do sistema operacional).
+  - Suporte completo a atalhos de teclado (Espaço para play/pause, tecla `M` para mudo, setas para navegar, `?` para ver atalhos).
+- 🔍 **Busca Global Instantânea (`Ctrl+K` ou `⌘K`)**:
+  - Command palette com busca preditiva rápida por nome da emissora, cidades, países e gêneros musicais (*Jazz, Ambient, Rock, Classical, etc.*), com histórico recente salvo localmente.
+- 📱 **Experiência Mobile de Primeira Classe**:
+  - Scroll vertical contínuo e unificado no painel lateral de estações, sem bloqueios de toque no iOS Safari ou Android.
+  - Carrossel horizontal deslizável (*swipe*) nas estações em destaque (**Spotlight**) no celular.
+  - Botão de recolhimento rápido para visualizar o mapa em tela cheia com um toque.
+  - Modo mini-player compacto para economizar espaço de tela.
+- 🎚️ **Filtro de Qualidade HQ & Escopo Geográfico**:
+  - Alterne entre emissoras da cidade selecionada (**LOCAL**) ou as mais populares do país inteiro (**WORLD**).
+  - Botão de filtro **HQ ONLY (≥128K)** para ouvir apenas transmissões de alta fidelidade sonora.
+- 📚 **Biblioteca Pessoal (Persistência no Dispositivo)**:
+  - Salve suas estações favoritas, acesse o histórico recente de rádios reproduzidas e acompanhe todas as cidades do mundo que você já "visitou".
+- 🔗 **Deep Linking e Compartilhamento**:
+  - Compartilhe o link direto de qualquer estação de rádio ou cidade com um clique (`/?city=...&cc=...&station=...`) com inicialização automática do áudio.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tecnologias Utilizadas
 
-- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
-- **UI Runtime**: [React 19](https://react.dev/)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) (Minimalist editorial dark palette)
-- **Map Engine**: [MapLibre GL](https://maplibre.org/) with CARTO Dark Matter vector tiles
-- **Data Fetching & Cache**: [TanStack React Query](https://tanstack.com/query)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Testing**: [Vitest](https://vitest.dev/) & [Testing Library](https://testing-library.com/)
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, Turbopack)
+- **Biblioteca de UI**: [React 19](https://react.dev/)
+- **Linguagem**: [TypeScript 5](https://www.typescriptlang.org/)
+- **Estilização**: [Tailwind CSS](https://tailwindcss.com/) (Design editorial escuro, minimalista e cinematográfico)
+- **Motor Cartográfico**: [MapLibre GL](https://maplibre.org/) com tiles vetoriais CARTO Dark Matter
+- **Gerenciamento de Estado de Rede**: [TanStack React Query](https://tanstack.com/query)
+- **Ícones**: [Lucide React](https://lucide.dev/)
+- **Testes Automatizados**: [Vitest](https://vitest.dev/) e [Testing Library](https://testing-library.com/)
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Como Executar Localmente
 
-### Prerequisites
+### Pré-requisitos
 
-- [Node.js](https://nodejs.org/) (version 18.18+ or 20+)
-- `npm` or `pnpm`
+- [Node.js](https://nodejs.org/) versão 18.18+ ou 20+
+- `npm` ou `pnpm`
 
-### Installation
+### Passo a passo
 
-1. **Clone the repository**:
+1. **Clonar o repositório:**
    ```bash
    git clone https://github.com/nelsongeraidine/radio_atlas.git
    cd radio_atlas
    ```
 
-2. **Install dependencies**:
+2. **Instalar as dependências:**
    ```bash
    npm install
    ```
 
-3. **Start the development server**:
+3. **Iniciar o servidor de desenvolvimento:**
    ```bash
    npm run dev
    ```
 
-4. **Open in browser**:
-   Navigate to [http://localhost:3000](http://localhost:3000).
+4. **Acessar no navegador:**
+   Abra [http://localhost:3000](http://localhost:3000) no seu navegador.
 
 ---
 
-## 🧪 Testing & Code Quality
+## 🧪 Testes e Qualidade de Código
 
-Radio Atlas enforces strict code quality with 100% test pass rates and zero lint/type errors:
+O Radio Atlas conta com testes automatizados rigorosos e zero erros de tipagem ou linting:
 
 ```bash
-# Run unit and integration tests (Vitest)
+# Executar a suíte de testes unitários e de integração (Vitest)
 npm test
 
-# Run ESLint validation
+# Executar checagem estrita de tipos TypeScript
+npx tsc --noEmit
+
+# Executar verificação de lint (ESLint)
 npm run lint
 
-# Run TypeScript typecheck
-npx tsc --noEmit
+# Executar build de produção otimizado
+npm run build
 ```
 
 ---
 
-## 📂 Project Architecture
+## 📂 Arquitetura do Projeto
 
 ```text
 app/
-  ├── layout.tsx              # RootLayout with Inter font, Providers, and GlobalPlayer
-  ├── page.tsx                # Explore page (Interactive Map + Sidebar + Deep Linking)
-  ├── discover/page.tsx       # Discover page (Editorial thematic carousels)
-  ├── library/page.tsx        # Library page (Favorites, Recents, Visited Cities)
-  └── api/radio/              # Resilient Node.js API routes (seed, stations, countries, search)
+  ├── layout.tsx              # RootLayout com Inter, Providers e Player Global
+  ├── page.tsx                # Página Explore (Mapa 3D/2D + Painel de Estações + Deep Linking)
+  ├── discover/page.tsx       # Página Discover (Carrosséis temáticos e editoriais)
+  ├── library/page.tsx        # Página Library (Favoritos, Histórico e Cidades Visitadas)
+  └── api/radio/              # Rotas de API Node.js resilientes (seed, stations, countries, search)
 components/
-  ├── WorldMap.tsx            # Interactive MapLibre GL map component
-  ├── CityOverlay.tsx         # Selected locality header with LOCAL / WORLD toggle
-  ├── StationList.tsx         # Station list with HQ (≥128k) bitrate filter
-  ├── StationCard.tsx         # Individual station card with play and favorite actions
-  ├── RadioPlayer.tsx         # Fixed audio player with visualizer, volume, and sharing
-  ├── GlobalPlayer.tsx        # Audio container mounted in root layout ensuring persistence
-  ├── AudioVisualizer.tsx     # Minimalist audio visualizer with CSS animation
-  ├── GlobalSearch.tsx        # Command palette (Ctrl+K / ⌘K) with genre & recent searches
-  ├── DiscoverSection.tsx     # Horizontal carousel for Discover page
-  ├── Spotlight.tsx           # Top 5 recommended stations for selected locality
-  └── Onboarding.tsx          # Adaptive welcome screen with timezone-based greeting
+  ├── WorldMap.tsx            # Mapa MapLibre GL interativo (globo 3D/2D com estrelas, lua e atmosfera)
+  ├── CityOverlay.tsx         # Cabeçalho da localidade com alternância LOCAL / WORLD
+  ├── StationList.tsx         # Lista completa de estações com filtro HQ (≥128k)
+  ├── StationCard.tsx         # Card individual de emissora com play e favoritos
+  ├── RadioPlayer.tsx         # Player de áudio com visualizer, volume, atalhos e compartilhamento
+  ├── GlobalPlayer.tsx        # Container montado no layout raiz que garante persistência do som
+  ├── AudioVisualizer.tsx     # Visualizador de áudio minimalista com animação CSS
+  ├── GlobalSearch.tsx        # Command palette (Ctrl+K / ⌘K) com busca por gênero e histórico
+  ├── DiscoverSection.tsx     # Seção de carrossel temático no Discover
+  ├── Spotlight.tsx           # Destaques em carrossel horizontal (mobile) e lista (desktop)
+  └── Onboarding.tsx          # Tela de introdução adaptativa ao fuso horário
 lib/
-  ├── radio-api/              # Resilient client with DNS mirror rotation pool
-  ├── library.ts              # Local persistence hooks (useFavorites, useRecentSearches, etc.)
-  ├── player-context.tsx      # Global audio context for continuous playback
-  └── format.ts               # TECHNICAL_TEXT_CLASS and string formatters
+  ├── radio-api/              # Cliente Node.js com rotação de servidores DNS
+  ├── library.ts              # Hooks de persistência local (useFavorites, useRecentSearches, etc.)
+  ├── player-context.tsx      # Contexto React global para tocar sem pausas entre telas
+  └── format.ts               # Constantes tipográficas e formatadores de texto
 ```
 
 ---
 
-## 📄 License & Acknowledgments
+## 👨‍💻 Autor e Créditos
 
-- Built with data from the community-driven [Radio Browser](https://www.radio-browser.info/) project.
-- Map tiles provided by [CARTO](https://carto.com/) via OpenStreetMap.
+Desenvolvido por **Nelson Geraidine**:
+- **Instagram**: [@nelsonggeraidine](https://instagram.com/nelsonggeraidine)
+- **LinkedIn**: [linkedin.com/in/nelsonggeraidine](https://linkedin.com/in/nelsonggeraidine)
+
+*Dados das emissoras providos pela comunidade aberta [Radio Browser](https://www.radio-browser.info/). Tiles de mapa providos por [CARTO](https://carto.com/) via OpenStreetMap.*
