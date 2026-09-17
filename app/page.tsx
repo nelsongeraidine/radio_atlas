@@ -216,8 +216,8 @@ function ExploreContent() {
 
         {/* ── Main content ──────────────────────────────────── */}
         <div className="relative flex flex-1 flex-col md:flex-row overflow-hidden">
-          {/* Map */}
-          <div className="flex-1 min-h-[60vh] md:min-h-0">
+          {/* Map — on mobile: shrinks when panel is open so the aside has room */}
+          <div className={`${selection ? "h-[38vh]" : "flex-1 min-h-[55vh]"} flex-shrink-0 md:flex-1 md:h-auto md:min-h-0`}>
             <WorldMap
               cities={cities ?? []}
               onSelectCity={handleSelectCity}
@@ -252,9 +252,9 @@ function ExploreContent() {
             </div>
           )}
 
-          {/* Side panel */}
+          {/* Side panel — on mobile: flex-1 so it fills all space below the map */}
           {selection && (
-            <aside className="flex w-full md:w-80 h-[45vh] md:h-full flex-col border-t md:border-t-0 md:border-l border-white/8 bg-black/80 md:bg-black/60 backdrop-blur-sm" style={{ minHeight: 0 }}>
+            <aside className="flex w-full md:w-80 flex-1 md:flex-none md:h-full flex-col border-t md:border-t-0 md:border-l border-white/8 bg-black/80 md:bg-black/60 backdrop-blur-sm" style={{ minHeight: 0 }}>
               {/* City or Country header */}
               <div className="flex-shrink-0">
                 {selection.type === "city" ? (
@@ -277,7 +277,7 @@ function ExploreContent() {
                 )}
               </div>
 
-              {/* Spotlight (top 5 from this city/country) — flex-shrink-0 so it doesn't compress the list */}
+              {/* Spotlight — flex-shrink-0 so it never compresses the list below */}
               {selectionStations.length > 0 && (
                 <div className="flex-shrink-0">
                   <Spotlight
@@ -289,7 +289,7 @@ function ExploreContent() {
                 </div>
               )}
 
-              {/* Full station list — flex-1 + overflow-y-auto = scrollable area */}
+              {/* Full station list — flex-1 + overflow-y-auto + min-h-0 = scrollable */}
               <div className="flex-1 overflow-y-auto min-h-0">
                 <StationList
                   countryCode={
