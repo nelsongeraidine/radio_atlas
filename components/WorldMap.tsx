@@ -166,6 +166,10 @@ export function WorldMap({
     }
 
     function draw() {
+      if (document.hidden) {
+        animFrameRef.current = requestAnimationFrame(draw);
+        return;
+      }
       const W = canvas!.offsetWidth;
       const H = canvas!.offsetHeight;
 

@@ -45,15 +45,15 @@ export function CityOverlay({
   return (
     <div
       data-testid="city-overlay"
-      className="animate-slide-in-right border-b border-white/10 p-6"
+      className="animate-slide-in-right border-b border-white/10 p-3.5 sm:p-6"
     >
       {/* City name */}
-      <h2 className="mb-1 text-[2.25rem] font-light leading-none tracking-tight text-white">
+      <h2 className="mb-1 text-2xl sm:text-[2.25rem] font-light leading-none tracking-tight text-white">
         {city.city}.
       </h2>
 
       {/* Meta line */}
-      <div className="mb-4 flex flex-col gap-1">
+      <div className="mb-3 sm:mb-4 flex flex-col gap-0.5 sm:gap-1">
         <span className={TECHNICAL_TEXT_CLASS}>{formatCityCountry(city.city, city.countryName)}</span>
         <span className={TECHNICAL_TEXT_CLASS}>{formatStationCount(city.stationCount)}</span>
       </div>

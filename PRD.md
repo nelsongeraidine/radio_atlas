@@ -34,7 +34,7 @@ Webapp para descobrir e ouvir rádios ao vivo do mundo todo através de uma expe
 | **Foco de Gênero no Discover** | ✅ Concluído | Deep linking para `/discover?genre=...` com auto-scroll suave e badge de destaque MATCH. |
 | **Exclusão Unitária no Histórico** | ✅ Concluído | Remoção individual com botão X de cada termo do histórico recente no Command Palette. |
 | **Cenário Espacial no Modo 3D** | ✅ Concluído | 250 estrelas animadas, estrelas cadentes, lua realista com crateras e anel atmosférico azul no modo globo. |
-| **Correções de UX Mobile** | ✅ Concluído | Scroll da lista corrigido no iOS Safari via `position:absolute` na aside (altura explícita em pixels); botão 2D/3D com `z-20` e touch target maior; mapa redimensiona dinamicamente quando painel abre. |
+| **Correções de UX Mobile & Performance** | ✅ Concluído | Scroll unificado vertical contínuo no painel lateral (CityOverlay + Spotlight + StationList no mesmo fluxo); Spotlight com carrossel horizontal deslizável no mobile; botão Fechar explícito; estabilização de renders com `useCallback`; canvas de estrelas com pausa inteligente em background via `document.hidden`. |
 
 ---
 

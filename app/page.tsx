@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useState, useSyncExternalStore } from "react";
+import { Suspense, useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Shuffle, Search } from "lucide-react";
+import { Shuffle, Search, X } from "lucide-react";
 import { WorldMap } from "@/components/WorldMap";
 import { CityOverlay } from "@/components/CityOverlay";
 import { StationList } from "@/components/StationList";
@@ -132,16 +132,16 @@ function ExploreContent() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  function handleSelectStation(station: Station) {
+  const handleSelectStation = useCallback((station: Station) => {
     playStation(station, selectionStations);
-  }
+  }, [playStation, selectionStations]);
 
-  function handleSelectCity(city: CityMarker) {
+  const handleSelectCity = useCallback((city: CityMarker) => {
     setSelection({ type: "city", city });
     setFlyToCity(city);
     setScopeFilter("LOCAL");
     addCityVisited(city);
-  }
+  }, [addCityVisited]);
 
   function handleSelectCountry(country: Country) {
     setSelection({ type: "country", countryCode: country.countryCode, countryName: country.name });
@@ -275,15 +275,36 @@ function ExploreContent() {
           {selection && (
             <aside className={[
               /* shared */
-              "flex flex-col border-white/8 bg-black/80 backdrop-blur-sm",
-              /* mobile: absolute below map */
-              "absolute inset-x-0 bottom-0 top-[38vh] overflow-hidden border-t",
+              "flex flex-col border-white/8 bg-black/90 backdrop-blur-md",
+              /* mobile: absolute below map with explicit bounds */
+              "absolute inset-x-0 bottom-0 top-[34vh] overflow-hidden border-t z-10",
               /* desktop override: static sidebar */
               "md:static md:w-80 md:h-full md:flex-none md:border-t-0 md:border-l md:bg-black/60",
             ].join(" ")}>
 
-              {/* City / Country header — never scrolls */}
-              <div className="flex-shrink-0">
+              {/* Mobile top bar with quick-close action */}
+              <div className="flex items-center justify-between border-b border-white/10 px-3.5 py-2 md:hidden bg-white/[0.04]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="h-2 w-2 flex-shrink-0 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-white/70">
+                    Estações
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  data-testid="close-side-panel"
+                  onClick={() => setSelection(null)}
+                  className="flex items-center gap-1 rounded border border-white/10 bg-white/10 px-2 py-0.5 text-[11px] text-white/90 active:scale-95 transition-all hover:bg-white/20 hover:text-white"
+                  aria-label="Fechar painel e ver mapa completo"
+                >
+                  <X size={12} />
+                  <span>Fechar</span>
+                </button>
+              </div>
+
+              {/* Single unified scroll container: everything scrolls together naturally */}
+              <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+                {/* City / Country header */}
                 {selection.type === "city" ? (
                   <CityOverlay
                     city={selection.city}
@@ -293,8 +314,8 @@ function ExploreContent() {
                     onScopeChange={setScopeFilter}
                   />
                 ) : (
-                  <div className="animate-slide-in-right border-b border-white/8 p-6">
-                    <h2 className="text-[2.25rem] font-light leading-none tracking-tight text-white">
+                  <div className="animate-slide-in-right border-b border-white/8 p-4 sm:p-6">
+                    <h2 className="text-2xl sm:text-[2.25rem] font-light leading-none tracking-tight text-white">
                       {selection.countryName}.
                     </h2>
                     <span className={`mt-1 block ${TECHNICAL_TEXT_CLASS}`}>
@@ -302,24 +323,18 @@ function ExploreContent() {
                     </span>
                   </div>
                 )}
-              </div>
 
-              {/* Spotlight — never scrolls, just takes its natural height */}
-              {selectionStations.length > 0 && (
-                <div className="flex-shrink-0">
+                {/* Spotlight — horizontal scroll carousel on mobile, vertical on desktop */}
+                {selectionStations.length > 0 && (
                   <Spotlight
                     stations={selectionStations}
                     nowPlayingId={nowPlaying?.id ?? null}
                     onPlay={handleSelectStation}
-                    maxCount={3}
+                    maxCount={5}
                   />
-                </div>
-              )}
+                )}
 
-              {/* Station list — the ONE scrollable area.
-                  overflow-y:scroll (not auto) forces scroll context on iOS.
-                  flex-1 + min-h-0 ensures it collapses to remaining height. */}
-              <div className="flex-1 min-h-0 overflow-y-scroll overscroll-contain">
+                {/* Station list — all stations, full height inside the scroll container */}
                 <StationList
                   countryCode={
                     selection.type === "city"

@@ -18,9 +18,12 @@ export function Spotlight({ stations, nowPlayingId, onPlay, maxCount = SPOTLIGHT
   if (featured.length === 0) return null;
 
   return (
-    <div className="border-b border-white/8 px-4 pb-4 pt-2">
-      <div className={`mb-2 ${TECHNICAL_TEXT_CLASS}`}>Spotlight</div>
-      <div className="flex flex-col gap-1">
+    <div className="border-b border-white/8 px-3.5 sm:px-4 pb-3 sm:pb-4 pt-2">
+      <div className="flex items-center justify-between mb-2">
+        <span className={TECHNICAL_TEXT_CLASS}>Spotlight</span>
+        <span className="text-[10px] text-white/30 sm:hidden">Deslize ⇄</span>
+      </div>
+      <div className="flex flex-row overflow-x-auto gap-2 md:flex-col pb-1 md:pb-0 overscroll-contain">
         {featured.map((station) => {
           const isPlaying = station.id === nowPlayingId;
           return (
@@ -29,8 +32,8 @@ export function Spotlight({ stations, nowPlayingId, onPlay, maxCount = SPOTLIGHT
               type="button"
               data-testid="spotlight-station"
               onClick={() => onPlay(station)}
-              className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 ${
-                isPlaying ? "bg-white/10" : "hover:bg-white/5"
+              className={`flex flex-shrink-0 w-48 md:w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 border border-white/5 md:border-transparent ${
+                isPlaying ? "bg-white/10 border-white/20" : "bg-white/[0.02] md:bg-transparent hover:bg-white/5"
               }`}
             >
               {/* Logo */}

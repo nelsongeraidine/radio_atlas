@@ -59,14 +59,13 @@ Este arquivo registra o status das melhorias implementadas e as próximas ideias
   - **Anel atmosférico azul** ao redor do globo simulando a atmosfera vista do espaço;
   - Todos os elementos fazem fade-in/out suave (1.4–1.6s) ao alternar entre 2D e 3D.
 
-### 8. Correções de UX Mobile — ✅ Concluído
-- **Implementação**: `app/page.tsx`, `components/Spotlight.tsx`, `components/WorldMap.tsx`.
+### 8. Correções de UX Mobile e Otimização de Performance — ✅ Concluído
+- **Implementação**: `app/page.tsx`, `components/Spotlight.tsx`, `components/CityOverlay.tsx`, `components/WorldMap.tsx`.
 - **Destaques**:
-  - **Scroll da lista de rádios corrigido (iOS Safari)**: o problema era que `overflow-y: scroll` em filhos `flex-1` dentro de `overflow-hidden` não ativa no iOS porque a altura é resolvida por cálculo flex em cadeia e o browser não considera isso "concreto". Solução definitiva: no mobile a `aside` usa `position: absolute` com `top: 38vh` e `bottom: 0` — isso dá ao browser uma altura em pixels explícita, ativando o scroll corretamente;
-  - **Mapa condicionalmente redimensionado**: quando o painel está aberto, o mapa usa `absolute inset-x-0 top-0 h-[38vh]`; sem painel, usa `flex-1` para preencher tudo;
-  - **Spotlight limitado a 3 itens** (prop `maxCount`) para liberar espaço vertical para a lista completa;
-  - **Botão 2D/3D mais acessível no touch**: `z-20`, `py-1.5 px-3 text-[12px]` — área de toque maior e visibilidade garantida;
-  - No desktop (`md:`) comportamento inalterado — `aside` volta a `static` como coluna do flex-row.
+  - **Scroll Unificado do Painel Lateral (Solução Definitiva para Mobile)**: todo o conteúdo do painel lateral (`CityOverlay`, `Spotlight` e `StationList`) agora reside dentro de um único container de rolagem vertical contínua (`overflow-y-auto overscroll-contain`). Isso elimina o travamento onde o Spotlight e o cabeçalho consumiam toda a altura útil e impediam o gesto de rolagem;
+  - **Spotlight com Rolagem Horizontal no Mobile**: no celular, o Spotlight transforma-se em um carrossel horizontal deslizável (`overflow-x-auto gap-2`), ocupando apenas ~60px de altura e permitindo ao usuário deslizar lateralmente para explorar os destaques e verticalmente para descer até a lista completa;
+  - **Cabeçalho Compacto e Botão Fechar no Mobile**: `CityOverlay` com paddings e tipografia responsivos (`p-3.5 sm:p-6`) e barra superior exclusiva para mobile com indicador pulsante e botão "Fechar" para recolher o painel e voltar ao mapa com um único toque;
+  - **Otimização de Performance & Bateria**: handlers `handleSelectCity` e `handleSelectStation` estabilizados com `useCallback` (evitando recriações desnecessárias dos marcadores do MapLibre) e draw loop do canvas de estrelas pausado automaticamente quando a tela/aba está em background via `document.hidden`.
 
 ---
 
