@@ -34,7 +34,7 @@ Webapp para descobrir e ouvir rádios ao vivo do mundo todo através de uma expe
 | **Foco de Gênero no Discover** | ✅ Concluído | Deep linking para `/discover?genre=...` com auto-scroll suave e badge de destaque MATCH. |
 | **Exclusão Unitária no Histórico** | ✅ Concluído | Remoção individual com botão X de cada termo do histórico recente no Command Palette. |
 | **Cenário Espacial no Modo 3D** | ✅ Concluído | 250 estrelas animadas, estrelas cadentes, lua realista com crateras e anel atmosférico azul no modo globo. |
-| **Correções de UX Mobile** | ✅ Concluído | Scroll da lista de rádios corrigido (`min-h-0` em flexbox); botão 2D/3D com área de toque maior (`z-20`); Spotlight limitado a 3 itens. |
+| **Correções de UX Mobile** | ✅ Concluído | Scroll da lista corrigido no iOS Safari via `position:absolute` na aside (altura explícita em pixels); botão 2D/3D com `z-20` e touch target maior; mapa redimensiona dinamicamente quando painel abre. |
 
 ---
 
@@ -60,7 +60,7 @@ Interface premium, minimalista, cinematográfica, estilo app editorial de músic
 - Mapa mundial escuro vetorial (MapLibre GL com CARTO Dark Matter): arrastar, zoom, marcadores de cidades curadas.
 - **Layout responsivo**:
   - *Desktop*: mapa em tela cheia com painel lateral flutuante ou acoplado à direita (`w-80`).
-  - *Mobile*: mapa na parte superior (`min-h-[60vh]`) e painel de estações abaixo (`h-[45vh]`, scroll interno corrigido com `min-h-0`). Botão 2D/3D com área de toque adequada para celular.
+  - *Mobile*: mapa `h-[38vh]` quando painel aberto (absolute), `flex-1` quando fechado. Painel lateral `position:absolute top-[38vh] bottom-0` — altura em pixels garante scroll no iOS Safari. Botão 2D/3D com `z-20` e touch target adequado.
 - **Ao selecionar localidade**:
   - Voo suave da câmera (`flyTo`);
   - **Controle LOCAL / COUNTRY**: toggle no topo da sidebar para alternar entre as estações da cidade selecionada e as estações populares de todo o país;

@@ -62,10 +62,11 @@ Este arquivo registra o status das melhorias implementadas e as próximas ideias
 ### 8. Correções de UX Mobile — ✅ Concluído
 - **Implementação**: `app/page.tsx`, `components/Spotlight.tsx`, `components/WorldMap.tsx`.
 - **Destaques**:
-  - **Scroll da lista de rádios corrigido**: removido `overflow-hidden` do `aside`; header e Spotlight envolvidos em `flex-shrink-0`; `div.flex-1.overflow-y-auto.min-h-0` garante scroll em flexbox;
+  - **Scroll da lista de rádios corrigido (iOS Safari)**: o problema era que `overflow-y: scroll` em filhos `flex-1` dentro de `overflow-hidden` não ativa no iOS porque a altura é resolvida por cálculo flex em cadeia e o browser não considera isso "concreto". Solução definitiva: no mobile a `aside` usa `position: absolute` com `top: 38vh` e `bottom: 0` — isso dá ao browser uma altura em pixels explícita, ativando o scroll corretamente;
+  - **Mapa condicionalmente redimensionado**: quando o painel está aberto, o mapa usa `absolute inset-x-0 top-0 h-[38vh]`; sem painel, usa `flex-1` para preencher tudo;
   - **Spotlight limitado a 3 itens** (prop `maxCount`) para liberar espaço vertical para a lista completa;
-  - **Botão 2D/3D mais acessível no touch**: `z-20`, `py-1.5 px-3 text-[12px]` — área de toque maior e visibilidade garantida acima de todos os overlays;
-  - Altura do painel lateral ajustada de `h-[50vh]` para `h-[45vh]` para equilibrar a visualização do mapa e da lista.
+  - **Botão 2D/3D mais acessível no touch**: `z-20`, `py-1.5 px-3 text-[12px]` — área de toque maior e visibilidade garantida;
+  - No desktop (`md:`) comportamento inalterado — `aside` volta a `static` como coluna do flex-row.
 
 ---
 
