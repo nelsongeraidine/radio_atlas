@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { RadioPlayer } from "./RadioPlayer";
 import type { Station } from "@/lib/radio-api/types";
@@ -22,6 +22,10 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  // @ts-expect-error cleanup
+  delete globalThis.MediaMetadata;
+  // @ts-expect-error cleanup
+  delete navigator.mediaSession;
 });
 
 describe("RadioPlayer", () => {
@@ -121,5 +125,104 @@ describe("RadioPlayer", () => {
     await userEvent.click(shareBtn);
     expect(writeTextMock).toHaveBeenCalled();
     expect(await screen.findByTestId("copied-toast")).toBeInTheDocument();
+  });
+
+  it("updates navigator.mediaSession metadata and playbackState", () => {
+    class FakeMediaMetadata {
+      title: string;
+      artist: string;
+      album: string;
+      artwork: unknown[];
+      constructor(init: { title: string; artist: string; album: string; artwork?: unknown[] }) {
+        this.title = init.title;
+        this.artist = init.artist;
+        this.album = init.album;
+        this.artwork = init.artwork || [];
+      }
+    }
+    // @ts-expect-error mock MediaMetadata
+    globalThis.MediaMetadata = FakeMediaMetadata;
+    const setActionHandlerMock = vi.fn();
+    Object.assign(navigator, {
+      mediaSession: {
+        metadata: null,
+        playbackState: "none",
+        setActionHandler: setActionHandlerMock,
+      },
+    });
+
+    render(<RadioPlayer station={station} />);
+    expect(navigator.mediaSession.metadata).toBeDefined();
+    expect(navigator.mediaSession.metadata?.title).toBe("Radio Test");
+    expect(setActionHandlerMock).toHaveBeenCalledWith("play", expect.any(Function));
+    expect(setActionHandlerMock).toHaveBeenCalledWith("pause", expect.any(Function));
+    expect(setActionHandlerMock).toHaveBeenCalledWith("previoustrack", expect.any(Function));
+    expect(setActionHandlerMock).toHaveBeenCalledWith("nexttrack", expect.any(Function));
+  });
+
+  it("handles global keyboard shortcuts for player control", () => {
+    const onNavigate = vi.fn();
+    const onToggleFavorite = vi.fn();
+
+    render(
+      <RadioPlayer
+        station={station}
+        playlist={[station, { ...station, id: "2" }]}
+        nowPlayingIndex={0}
+        onNavigate={onNavigate}
+        onToggleFavorite={onToggleFavorite}
+      />
+    );
+
+    // Mute via 'M' key
+    fireEvent.keyDown(window, { code: "KeyM", key: "m" });
+    expect(screen.getByLabelText("Unmute")).toBeInTheDocument();
+
+    // Next via 'K' or ArrowRight
+    fireEvent.keyDown(window, { code: "KeyK", key: "k" });
+    expect(onNavigate).toHaveBeenCalledWith("next");
+
+    // Toggle favorite via 'L'
+    fireEvent.keyDown(window, { code: "KeyL", key: "l" });
+    expect(onToggleFavorite).toHaveBeenCalledWith(station);
+
+    // Toggle shortcuts guide via '?'
+    fireEvent.keyDown(window, { code: "Slash", key: "?", shiftKey: true });
+    expect(screen.getByTestId("shortcuts-modal")).toBeInTheDocument();
+  });
+
+  it("does not trigger keyboard shortcuts when typing in an input element", () => {
+    const onNavigate = vi.fn();
+    render(
+      <div>
+        <input data-testid="search-input" />
+        <RadioPlayer
+          station={station}
+          playlist={[station, { ...station, id: "2" }]}
+          nowPlayingIndex={0}
+          onNavigate={onNavigate}
+        />
+      </div>
+    );
+
+    const input = screen.getByTestId("search-input");
+    input.focus();
+
+    // Fire Space while focused on input - should not toggle play or prevent default
+    const event = new KeyboardEvent("keydown", { code: "Space", key: " ", bubbles: true });
+    input.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it("collapses into mini-player and expands back on mobile", async () => {
+    render(<RadioPlayer station={station} />);
+    const collapseBtn = screen.getByTestId("collapse-player-btn");
+
+    await userEvent.click(collapseBtn);
+    expect(screen.getByTestId("radio-player-collapsed")).toBeInTheDocument();
+
+    const expandBtn = screen.getByTestId("expand-player-btn");
+    await userEvent.click(expandBtn);
+    expect(screen.queryByTestId("radio-player-collapsed")).not.toBeInTheDocument();
   });
 });

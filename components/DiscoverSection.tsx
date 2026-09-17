@@ -7,29 +7,48 @@ import { Play } from "lucide-react";
 import { Heart } from "lucide-react";
 
 interface DiscoverSectionProps {
+  id?: string;
   label: string;
   countryCode: string;
   nowPlayingId: string | null;
   onPlay: (station: Station) => void;
   isFavorited: (station: Station) => boolean;
   onToggleFavorite: (station: Station) => void;
+  isHighlighted?: boolean;
 }
 
 export function DiscoverSection({
+  id,
   label,
   countryCode,
   nowPlayingId,
   onPlay,
   isFavorited,
   onToggleFavorite,
+  isHighlighted = false,
 }: DiscoverSectionProps) {
   const { data, isLoading, isError } = useStations(countryCode, null);
 
   return (
-    <div>
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/50">
-        {label}
-      </h2>
+    <div
+      id={id}
+      data-testid={id ? `discover-section-${id}` : undefined}
+      className={`rounded-xl transition-all duration-700 p-2 -m-2 ${
+        isHighlighted
+          ? "bg-white/5 ring-1 ring-white/30 shadow-[0_0_20px_rgba(255,255,255,0.08)]"
+          : ""
+      }`}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <h2 className={`text-xs font-semibold uppercase tracking-widest ${isHighlighted ? "text-white" : "text-white/50"}`}>
+          {label}
+        </h2>
+        {isHighlighted && (
+          <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-mono uppercase tracking-wider text-white">
+            MATCH
+          </span>
+        )}
+      </div>
 
       {isLoading && (
         <div className="flex gap-3 overflow-hidden">

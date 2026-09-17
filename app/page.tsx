@@ -217,7 +217,7 @@ function ExploreContent() {
         {/* ── Main content ──────────────────────────────────── */}
         <div className="relative flex flex-1 flex-col md:flex-row overflow-hidden">
           {/* Map */}
-          <div className="flex-1 min-h-[40vh] md:min-h-0">
+          <div className="flex-1 min-h-[60vh] md:min-h-0">
             <WorldMap
               cities={cities ?? []}
               onSelectCity={handleSelectCity}
@@ -254,38 +254,43 @@ function ExploreContent() {
 
           {/* Side panel */}
           {selection && (
-            <aside className="flex w-full md:w-80 h-[50vh] md:h-full flex-col overflow-hidden border-t md:border-t-0 md:border-l border-white/8 bg-black/80 md:bg-black/60 backdrop-blur-sm">
+            <aside className="flex w-full md:w-80 h-[45vh] md:h-full flex-col border-t md:border-t-0 md:border-l border-white/8 bg-black/80 md:bg-black/60 backdrop-blur-sm" style={{ minHeight: 0 }}>
               {/* City or Country header */}
-              {selection.type === "city" ? (
-                <CityOverlay
-                  city={selection.city}
-                  allCities={cities ?? []}
-                  onSelectCity={handleSelectCity}
-                  scopeFilter={scopeFilter}
-                  onScopeChange={setScopeFilter}
-                />
-              ) : (
-                <div className="animate-slide-in-right border-b border-white/8 p-6">
-                  <h2 className="text-[2.25rem] font-light leading-none tracking-tight text-white">
-                    {selection.countryName}.
-                  </h2>
-                  <span className={`mt-1 block ${TECHNICAL_TEXT_CLASS}`}>
-                    All stations
-                  </span>
+              <div className="flex-shrink-0">
+                {selection.type === "city" ? (
+                  <CityOverlay
+                    city={selection.city}
+                    allCities={cities ?? []}
+                    onSelectCity={handleSelectCity}
+                    scopeFilter={scopeFilter}
+                    onScopeChange={setScopeFilter}
+                  />
+                ) : (
+                  <div className="animate-slide-in-right border-b border-white/8 p-6">
+                    <h2 className="text-[2.25rem] font-light leading-none tracking-tight text-white">
+                      {selection.countryName}.
+                    </h2>
+                    <span className={`mt-1 block ${TECHNICAL_TEXT_CLASS}`}>
+                      All stations
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Spotlight (top 5 from this city/country) — flex-shrink-0 so it doesn't compress the list */}
+              {selectionStations.length > 0 && (
+                <div className="flex-shrink-0">
+                  <Spotlight
+                    stations={selectionStations}
+                    nowPlayingId={nowPlaying?.id ?? null}
+                    onPlay={handleSelectStation}
+                    maxCount={3}
+                  />
                 </div>
               )}
 
-              {/* Spotlight (top 5 from this city/country) */}
-              {selectionStations.length > 0 && (
-                <Spotlight
-                  stations={selectionStations}
-                  nowPlayingId={nowPlaying?.id ?? null}
-                  onPlay={handleSelectStation}
-                />
-              )}
-
-              {/* Full station list */}
-              <div className="flex-1 overflow-y-auto">
+              {/* Full station list — flex-1 + overflow-y-auto = scrollable area */}
+              <div className="flex-1 overflow-y-auto min-h-0">
                 <StationList
                   countryCode={
                     selection.type === "city"

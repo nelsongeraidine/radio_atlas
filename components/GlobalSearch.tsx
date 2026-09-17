@@ -62,7 +62,7 @@ export function GlobalSearch({
 }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
-  const { recentSearches, addRecentSearch, clearRecentSearches } = useRecentSearches();
+  const { recentSearches, addRecentSearch, removeRecentSearch, clearRecentSearches } = useRecentSearches();
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   if (isOpen !== prevIsOpen) {
     setPrevIsOpen(isOpen);
@@ -349,16 +349,32 @@ export function GlobalSearch({
               </button>
             </div>
             {recentSearches.map((term) => (
-              <button
+              <div
                 key={term}
-                type="button"
-                data-testid="global-search-recent-item"
-                onClick={() => setQuery(term)}
-                className="flex w-full items-center gap-3 px-5 py-2.5 text-left text-sm text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+                className="group flex w-full items-center justify-between px-5 py-1.5 hover:bg-white/5 transition-colors"
               >
-                <Clock size={13} className="text-white/30" />
-                <span>{term}</span>
-              </button>
+                <button
+                  type="button"
+                  data-testid="global-search-recent-item"
+                  onClick={() => setQuery(term)}
+                  className="flex flex-1 items-center gap-3 text-left text-sm text-white/70 group-hover:text-white transition-colors truncate"
+                >
+                  <Clock size={13} className="text-white/30 flex-shrink-0" />
+                  <span className="truncate">{term}</span>
+                </button>
+                <button
+                  type="button"
+                  data-testid={`remove-recent-${term}`}
+                  aria-label={`Remove ${term} from recent searches`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeRecentSearch(term);
+                  }}
+                  className="rounded p-1 text-white/30 opacity-0 group-hover:opacity-100 hover:text-white/80 transition-all duration-150 flex-shrink-0"
+                >
+                  <X size={13} />
+                </button>
+              </div>
             ))}
           </div>
         ) : (

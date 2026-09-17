@@ -24,7 +24,7 @@ app/
   ├── library/page.tsx        # Página Library (Favoritos, Histórico, Cidades visitadas)
   └── api/radio/              # Rotas de API Node.js (seed, stations, countries, search)
 components/
-  ├── WorldMap.tsx            # Mapa interativo MapLibre GL
+  ├── WorldMap.tsx            # Mapa interativo MapLibre GL (globo 3D / Mercator 2D) com cenário espacial animado (estrelas, lua, atmosfera)
   ├── CityOverlay.tsx         # Cabeçalho da cidade/país selecionado com alternância LOCAL / COUNTRY
   ├── StationList.tsx         # Lista de estações da localidade selecionada
   ├── StationCard.tsx         # Card individual de rádio com play e favoritos

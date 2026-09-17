@@ -27,9 +27,14 @@ Webapp para descobrir e ouvir rádios ao vivo do mundo todo através de uma expe
 | **Busca por Gêneros no Palette** | ✅ Concluído | Categoria GENRES no Command Palette (`Ctrl+K`) para busca direta de estilos musicais. |
 | **Detecção por Timezone** | ✅ Concluído | Saudação adaptativa no Onboarding baseada no fuso horário do visitante sem GPS. |
 | **Filtro de Qualidade de Áudio** | ✅ Concluído | Filtro por taxa de bitrate mínima (HQ ≥ 128 kbps) na listagem StationList com contagem dinâmica. |
-| **Histórico de Busca Recente** | ✅ Concluído | Memorização das últimas 6 consultas pesquisadas no Command Palette com atalho direto e botão de limpar. |
-| **Atalhos de Teclado no Player** | ⏳ Planejado | Barra de espaço para play/pause global, tecla M para mute e setas para estações (ver `todo.md`). |
-| **Modo Mini-player Mobile** | ⏳ Planejado | Recolhimento do player em barra ultra-fina para expansão de tela do mapa no mobile (ver `todo.md`). |
+| **Atalhos de Teclado no Player** | ✅ Concluído | Barra de espaço para play/pause global, tecla M para mute, setas/J/K para estações e ? para guia. |
+| **Modo Mini-player Mobile** | ✅ Concluído | Recolhimento do player em barra ultra-fina no mobile para maximizar a área útil do mapa. |
+| **MediaSession API (Bluetooth/SO)** | ✅ Concluído | Integração nativa com controles de mídia do teclado, fones Bluetooth e central do SO. |
+| **Projeção 3D Globo vs 2D Plano** | ✅ Concluído | Alternância suave entre globo esférico 3D (`pitch: 0`, projeção nativa MapLibre GL v5) e mapa 2D Mercator. |
+| **Foco de Gênero no Discover** | ✅ Concluído | Deep linking para `/discover?genre=...` com auto-scroll suave e badge de destaque MATCH. |
+| **Exclusão Unitária no Histórico** | ✅ Concluído | Remoção individual com botão X de cada termo do histórico recente no Command Palette. |
+| **Cenário Espacial no Modo 3D** | ✅ Concluído | 250 estrelas animadas, estrelas cadentes, lua realista com crateras e anel atmosférico azul no modo globo. |
+| **Correções de UX Mobile** | ✅ Concluído | Scroll da lista de rádios corrigido (`min-h-0` em flexbox); botão 2D/3D com área de toque maior (`z-20`); Spotlight limitado a 3 itens. |
 
 ---
 
@@ -55,7 +60,7 @@ Interface premium, minimalista, cinematográfica, estilo app editorial de músic
 - Mapa mundial escuro vetorial (MapLibre GL com CARTO Dark Matter): arrastar, zoom, marcadores de cidades curadas.
 - **Layout responsivo**:
   - *Desktop*: mapa em tela cheia com painel lateral flutuante ou acoplado à direita (`w-80`).
-  - *Mobile*: mapa na metade superior da tela e painel de estações na metade inferior (`flex-col md:flex-row`), permitindo rolar a lista sem perder a visualização do mapa.
+  - *Mobile*: mapa na parte superior (`min-h-[60vh]`) e painel de estações abaixo (`h-[45vh]`, scroll interno corrigido com `min-h-0`). Botão 2D/3D com área de toque adequada para celular.
 - **Ao selecionar localidade**:
   - Voo suave da câmera (`flyTo`);
   - **Controle LOCAL / COUNTRY**: toggle no topo da sidebar para alternar entre as estações da cidade selecionada e as estações populares de todo o país;

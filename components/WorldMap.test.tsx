@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import type { CityMarker } from "@/lib/radio-api/types";
 
 const markerInstances: { setLngLat: ReturnType<typeof vi.fn>; addTo: ReturnType<typeof vi.fn>; remove: ReturnType<typeof vi.fn>; el: HTMLElement }[] = [];
@@ -11,6 +11,8 @@ class FakeMap {
   getLayer = vi.fn().mockReturnValue(undefined);
   setLayoutProperty = vi.fn();
   flyTo = vi.fn();
+  setProjection = vi.fn();
+  easeTo = vi.fn();
   constructor(public options: unknown) {
     mapInstances.push(this);
   }
@@ -72,5 +74,31 @@ describe("WorldMap", () => {
 
     expect(mapInstance.setLayoutProperty).toHaveBeenCalledWith("place_city_r6", "visibility", "none");
     expect(mapInstance.setLayoutProperty).toHaveBeenCalledWith("place_town", "visibility", "none");
+  });
+
+  it("toggles projection between 2D and 3D globe with camera adjustment", async () => {
+    const { WorldMap } = await import("./WorldMap");
+    const { getByTestId } = render(<WorldMap cities={cities} onSelectCity={vi.fn()} />);
+
+    const btn2D = getByTestId("projection-2d");
+    const btn3D = getByTestId("projection-3d");
+    const mapInstance = mapInstances[0];
+
+    expect(btn2D.getAttribute("aria-pressed")).toBe("true");
+    expect(btn3D.getAttribute("aria-pressed")).toBe("false");
+
+    // Switch to 3D Globe
+    fireEvent.click(btn3D);
+    expect(mapInstance.setProjection).toHaveBeenCalledWith({ type: "globe" });
+    expect(mapInstance.easeTo).toHaveBeenCalledWith({ pitch: 0, bearing: 0, duration: 800 });
+    expect(btn3D.getAttribute("aria-pressed")).toBe("true");
+    expect(btn2D.getAttribute("aria-pressed")).toBe("false");
+
+    // Switch back to 2D Mercator
+    fireEvent.click(btn2D);
+    expect(mapInstance.setProjection).toHaveBeenCalledWith({ type: "mercator" });
+    expect(mapInstance.easeTo).toHaveBeenCalledWith({ pitch: 0, bearing: 0, duration: 800 });
+    expect(btn2D.getAttribute("aria-pressed")).toBe("true");
+    expect(btn3D.getAttribute("aria-pressed")).toBe("false");
   });
 });

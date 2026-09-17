@@ -120,9 +120,13 @@ export function useRecentSearches() {
     });
   }, []);
 
+  const removeRecentSearch = useCallback((term: string) => {
+    setRecentSearches((prev) => prev.filter((s) => s.toLowerCase() !== term.toLowerCase()));
+  }, []);
+
   const clearRecentSearches = useCallback(() => {
     setRecentSearches([]);
   }, []);
 
-  return { recentSearches, addRecentSearch, clearRecentSearches };
+  return { recentSearches, addRecentSearch, removeRecentSearch, clearRecentSearches };
 }

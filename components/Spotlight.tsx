@@ -8,12 +8,13 @@ interface SpotlightProps {
   stations: Station[];
   nowPlayingId: string | null;
   onPlay: (station: Station) => void;
+  maxCount?: number;
 }
 
 const SPOTLIGHT_COUNT = 5;
 
-export function Spotlight({ stations, nowPlayingId, onPlay }: SpotlightProps) {
-  const featured = stations.slice(0, SPOTLIGHT_COUNT);
+export function Spotlight({ stations, nowPlayingId, onPlay, maxCount = SPOTLIGHT_COUNT }: SpotlightProps) {
+  const featured = stations.slice(0, maxCount);
   if (featured.length === 0) return null;
 
   return (

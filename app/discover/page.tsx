@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { DiscoverSection } from "@/components/DiscoverSection";
 import { usePlayer } from "@/lib/player-context";
@@ -24,10 +24,38 @@ const SECTIONS = [
   { label: "Something different", type: "country" as const, countryCode: "NZ" },
 ] as const;
 
-export default function DiscoverPage() {
+function formatSectionId(label: string) {
+  return `section-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+}
+
+function DiscoverContent() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { nowPlaying, playStation, isFavorited, toggleFavorite } = usePlayer();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const genreParam = searchParams.get("genre");
+  const [lastGenre, setLastGenre] = useState("");
+  const [highlightedSection, setHighlightedSection] = useState<string | null>(null);
+
+  if (genreParam && genreParam !== lastGenre) {
+    setLastGenre(genreParam);
+    const normalized = genreParam.trim().toLowerCase();
+    const matched = SECTIONS.find((s) => s.label.toLowerCase().includes(normalized));
+    if (matched) {
+      setHighlightedSection(matched.label);
+    }
+  }
+
+  useEffect(() => {
+    if (!highlightedSection) return;
+    const el = document.getElementById(formatSectionId(highlightedSection));
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    const timer = setTimeout(() => setHighlightedSection(null), 3500);
+    return () => clearTimeout(timer);
+  }, [highlightedSection]);
 
   function handleSelectStation(station: Station) {
     playStation(station);
@@ -42,9 +70,10 @@ export default function DiscoverPage() {
   }
 
   function handleSelectGenre(genre: string) {
-    const el = document.getElementById(genre.toLowerCase());
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
+    const normalized = genre.trim().toLowerCase();
+    const matched = SECTIONS.find((s) => s.label.toLowerCase().includes(normalized));
+    if (matched) {
+      setHighlightedSection(matched.label);
     }
   }
 
@@ -88,12 +117,14 @@ export default function DiscoverPage() {
           {SECTIONS.map((section) => (
             <DiscoverSection
               key={section.label}
+              id={formatSectionId(section.label)}
               label={section.label}
               countryCode={section.type === "country" ? section.countryCode : section.values[0]}
               nowPlayingId={nowPlaying?.id ?? null}
               onPlay={handleSelectStation}
               isFavorited={isFavorited}
               onToggleFavorite={toggleFavorite}
+              isHighlighted={highlightedSection === section.label}
             />
           ))}
         </div>
@@ -108,5 +139,19 @@ export default function DiscoverPage() {
         onSelectGenre={handleSelectGenre}
       />
     </main>
+  );
+}
+
+export default function DiscoverPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-full items-center justify-center bg-black">
+          <span className={TECHNICAL_TEXT_CLASS}>Loading Discover…</span>
+        </div>
+      }
+    >
+      <DiscoverContent />
+    </Suspense>
   );
 }

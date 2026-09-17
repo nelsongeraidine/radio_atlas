@@ -186,4 +186,25 @@ describe("GlobalSearch", () => {
     fireEvent.click(screen.getByTestId("global-search-clear-recent"));
     expect(screen.queryByTestId("global-search-recent")).not.toBeInTheDocument();
   });
+
+  it("allows removing individual terms from recent searches", () => {
+    localStorage.setItem("radio-atlas:recent-searches", JSON.stringify(["Jazz", "Berlin"]));
+    renderWithClient(
+      <GlobalSearch
+        isOpen
+        onClose={vi.fn()}
+        onSelectStation={vi.fn()}
+        onSelectCity={vi.fn()}
+        onSelectCountry={vi.fn()}
+      />
+    );
+    expect(screen.getByText("Jazz")).toBeInTheDocument();
+    expect(screen.getByText("Berlin")).toBeInTheDocument();
+
+    const removeJazzBtn = screen.getByTestId("remove-recent-Jazz");
+    fireEvent.click(removeJazzBtn);
+
+    expect(screen.queryByText("Jazz")).not.toBeInTheDocument();
+    expect(screen.getByText("Berlin")).toBeInTheDocument();
+  });
 });
