@@ -215,9 +215,25 @@ function ExploreContent() {
         </header>
 
         {/* ── Main content ──────────────────────────────────── */}
-        <div className="relative flex flex-1 flex-col md:flex-row overflow-hidden">
-          {/* Map — on mobile: shrinks when panel is open so the aside has room */}
-          <div className={`${selection ? "h-[38vh]" : "flex-1 min-h-[55vh]"} flex-shrink-0 md:flex-1 md:h-auto md:min-h-0`}>
+        {/*
+          Mobile layout strategy (when selection open):
+          - Outer container: relative, h = 100% of flex-1 (bounded)
+          - Map: absolute top-0 left-0 right-0 h-[38vh]
+          - Aside: absolute top-[38vh] left-0 right-0 bottom-0
+          Both have EXPLICIT pixel bounds → iOS Safari can resolve
+          overflow:hidden + overflow-y:scroll correctly.
+          Desktop (md:): static flex-row — unchanged.
+        */}
+        <div className={`relative flex-1 ${selection ? "block" : "flex"} md:flex md:flex-row overflow-hidden`}>
+
+          {/* Map */}
+          <div className={
+            selection
+              /* mobile: explicit top slice */
+              ? "absolute inset-x-0 top-0 h-[38vh] md:static md:h-full md:flex-1"
+              /* no selection: fill everything */
+              : "flex-1 md:flex-1"
+          }>
             <WorldMap
               cities={cities ?? []}
               onSelectCity={handleSelectCity}
@@ -252,10 +268,21 @@ function ExploreContent() {
             </div>
           )}
 
-          {/* Side panel — on mobile: flex-1 so it fills all space below the map */}
+          {/* Side panel
+              Mobile : absolute, fills the bottom portion beneath the map.
+                       Explicit pixel bounds → overflow-y:scroll works on iOS.
+              Desktop: static flex child in the row, full height. */}
           {selection && (
-            <aside className="flex w-full md:w-80 flex-1 md:flex-none md:h-full flex-col border-t md:border-t-0 md:border-l border-white/8 bg-black/80 md:bg-black/60 backdrop-blur-sm" style={{ minHeight: 0 }}>
-              {/* City or Country header */}
+            <aside className={[
+              /* shared */
+              "flex flex-col border-white/8 bg-black/80 backdrop-blur-sm",
+              /* mobile: absolute below map */
+              "absolute inset-x-0 bottom-0 top-[38vh] overflow-hidden border-t",
+              /* desktop override: static sidebar */
+              "md:static md:w-80 md:h-full md:flex-none md:border-t-0 md:border-l md:bg-black/60",
+            ].join(" ")}>
+
+              {/* City / Country header — never scrolls */}
               <div className="flex-shrink-0">
                 {selection.type === "city" ? (
                   <CityOverlay
@@ -277,7 +304,7 @@ function ExploreContent() {
                 )}
               </div>
 
-              {/* Spotlight — flex-shrink-0 so it never compresses the list below */}
+              {/* Spotlight — never scrolls, just takes its natural height */}
               {selectionStations.length > 0 && (
                 <div className="flex-shrink-0">
                   <Spotlight
@@ -289,8 +316,10 @@ function ExploreContent() {
                 </div>
               )}
 
-              {/* Full station list — flex-1 + overflow-y-auto + min-h-0 = scrollable */}
-              <div className="flex-1 overflow-y-auto min-h-0">
+              {/* Station list — the ONE scrollable area.
+                  overflow-y:scroll (not auto) forces scroll context on iOS.
+                  flex-1 + min-h-0 ensures it collapses to remaining height. */}
+              <div className="flex-1 min-h-0 overflow-y-scroll overscroll-contain">
                 <StationList
                   countryCode={
                     selection.type === "city"
