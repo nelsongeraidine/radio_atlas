@@ -52,11 +52,12 @@ lib/
 4. **Padrão de texto técnico unificado**: Usar sempre a constante `TECHNICAL_TEXT_CLASS` de `lib/format.ts` para metadados, títulos técnicos, tags e badges.
 5. **Persistência local**: Favoritos, histórico de reprodução, cidades visitadas e consultas recentes são gravados no `localStorage` via hooks dedicados.
 6. **Player Contínuo**: O áudio reside no `GlobalPlayer` no `RootLayout`. A navegação entre as abas (`/`, `/discover`, `/library`) não desmonta o player nem interrompe a reprodução da rádio ativa.
-7. **Responsividade Mobile**: Em telas pequenas (`< 768px`), o Explore organiza-se em coluna vertical (mapa na metade superior, lista na metade inferior), e os controles do player tornam-se compactos sem transbordamento.
-8. **Qualidade contínua**:
-   - Rodar testes: `npm test` (deve passar 100% dos testes sem erros);
+7. **Responsividade Mobile**: Em telas pequenas (`< 768px`), o Explore organiza-se com mapa na parte superior (`34vh`) e painel lateral absoluto com scroll vertical unificado de ponta a ponta (`overflow-y-auto overscroll-contain`). O Spotlight funciona como carrossel horizontal deslizável (`swipe`), liberando espaço vertical para a listagem completa de estações, acompanhado de botão de fechar móvel e player compacto.
+8. **Qualidade contínua e Performance**:
+   - Rodar testes: `npm test` (deve passar 100% dos testes sem erros — atualmente 104 testes);
    - Lint: `npm run lint` (zero warnings e zero erros);
-   - Typecheck: `npx tsc --noEmit` (zero erros de tipagem).
+   - Typecheck: `npx tsc --noEmit` (zero erros de tipagem);
+   - Auditoria contínua via skill `code-audit` (verificação de memory leaks, WebGL, re-renders com `useCallback` e bateria).
 
 <!-- BEGIN:nextjs-agent-rules -->
 
