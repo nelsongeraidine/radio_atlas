@@ -35,6 +35,7 @@ Webapp para descobrir e ouvir rádios ao vivo do mundo todo através de uma expe
 | **Exclusão Unitária no Histórico** | ✅ Concluído | Remoção individual com botão X de cada termo do histórico recente no Command Palette. |
 | **Cenário Espacial no Modo 3D** | ✅ Concluído | 250 estrelas animadas, estrelas cadentes, lua realista com crateras e anel atmosférico azul no modo globo. |
 | **Correções de UX Mobile & Performance** | ✅ Concluído | Scroll unificado vertical contínuo no painel lateral (CityOverlay + Spotlight + StationList no mesmo fluxo); Spotlight com carrossel horizontal deslizável no mobile; botão Fechar explícito; estabilização de renders com `useCallback`; canvas de estrelas com pausa inteligente em background via `document.hidden`. |
+| **Auditoria de Acessibilidade e Design System** | ✅ Concluído | Touch targets ≥44px em todos os controles interativos; `prefers-reduced-motion` em todas as animações decorativas; semântica de diálogo (`role="dialog"`, `aria-modal`, focus trap, Escape) no Command Palette e no modal de atalhos; `DESIGN.md` documentando o sistema visual real; tokens `signal-green`/`ember-red` no Tailwind substituindo cores hard-coded. Detalhes em `todo.md`. |
 
 ---
 
@@ -44,6 +45,7 @@ Interface premium, minimalista, cinematográfica, estilo app editorial de músic
 
 - **Padrão de texto técnico** (`TECHNICAL_TEXT_CLASS`): caixa alta, tracking espaçado, formato `CIDADE, PAÍS` / `N STATIONS` / `BITRATE KBPS` / `LIVE` / `IDIOMA` / `GÊNERO`. Nomes de cidade e país em destaque terminam com ponto final (ex: "Paris.", "Japan.") como parte da identidade gráfica.
 - Evitar: aparência de dashboard corporativo, excesso de cards, gradientes chamativos, cores saturadas.
+- **Sistema de design documentado** em `DESIGN.md` (gerado via skill `impeccable`, comando `document`/`extract`): a paleta real é uma única tinta (branco) em opacidades variáveis sobre preto puro, mais dois acentos de estado — `signal-green` (ao vivo) e `ember-red` (favoritado) — nunca decorativos. Ver `DESIGN.md` antes de introduzir qualquer nova cor.
 
 ---
 

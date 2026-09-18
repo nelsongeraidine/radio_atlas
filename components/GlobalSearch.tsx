@@ -73,6 +73,7 @@ export function GlobalSearch({
   }
 
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   const debouncedQuery = useDebouncedValue(query, 300);
 
   const { data: cities } = useCityMarkers();
@@ -143,6 +144,25 @@ export function GlobalSearch({
     onClose();
   }
 
+  function handleDialogKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Tab") return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const focusables = dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), input, [href], [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
       onClose();
@@ -178,7 +198,14 @@ export function GlobalSearch({
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 pt-24 backdrop-blur-md"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="animate-fade-in w-full max-w-xl overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] shadow-2xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search"
+        onKeyDown={handleDialogKeyDown}
+        className="animate-fade-in w-full max-w-xl overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] shadow-2xl"
+      >
         {/* Input bar */}
         <div className="flex items-center gap-3 border-b border-white/8 px-5 py-4">
           <Search className="h-4 w-4 flex-shrink-0 text-white/30" />
@@ -197,7 +224,7 @@ export function GlobalSearch({
               type="button"
               aria-label="Clear search"
               onClick={() => setQuery("")}
-              className="flex-shrink-0 text-white/30 hover:text-white/60"
+              className="flex min-h-11 min-w-11 flex-shrink-0 items-center justify-center text-white/30 hover:text-white/60"
             >
               <X size={14} />
             </button>
@@ -243,6 +270,7 @@ export function GlobalSearch({
                         src={station.favicon}
                         alt=""
                         aria-hidden="true"
+                        loading="lazy"
                         className="h-6 w-6 rounded object-cover"
                         onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                       />
@@ -343,7 +371,7 @@ export function GlobalSearch({
                 type="button"
                 data-testid="global-search-clear-recent"
                 onClick={clearRecentSearches}
-                className={`text-[10px] text-white/30 hover:text-white/60 transition-colors ${TECHNICAL_TEXT_CLASS}`}
+                className={`flex min-h-11 items-center text-[10px] text-white/30 hover:text-white/60 transition-colors ${TECHNICAL_TEXT_CLASS}`}
               >
                 Clear
               </button>
@@ -370,7 +398,7 @@ export function GlobalSearch({
                     e.stopPropagation();
                     removeRecentSearch(term);
                   }}
-                  className="rounded p-1 text-white/30 opacity-0 group-hover:opacity-100 hover:text-white/80 transition-all duration-150 flex-shrink-0"
+                  className="flex min-h-9 min-w-9 items-center justify-center rounded text-white/30 opacity-60 hover:text-white/80 hover:opacity-100 focus-visible:opacity-100 transition-all duration-150 flex-shrink-0"
                 >
                   <X size={13} />
                 </button>

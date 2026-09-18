@@ -22,7 +22,7 @@ export function StationCard({
   return (
     <div
       data-testid="station-card"
-      className={`group flex items-center gap-3 border-b border-white/5 px-4 py-3 transition-colors duration-200 ${
+      className={`flex items-center gap-3 border-b border-white/5 px-4 py-3 transition-colors duration-200 ${
         isPlaying ? "bg-white/8" : "hover:bg-white/5"
       }`}
     >
@@ -34,6 +34,7 @@ export function StationCard({
             src={station.favicon}
             alt=""
             aria-hidden="true"
+            loading="lazy"
             className="h-full w-full object-cover"
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).style.display = "none";
@@ -46,7 +47,7 @@ export function StationCard({
         )}
         {/* LIVE dot overlay when playing */}
         {isPlaying && (
-          <span className="live-dot absolute bottom-0.5 right-0.5 h-1.5 w-1.5 rounded-full bg-green-400" />
+          <span className="live-dot absolute bottom-0.5 right-0.5 h-1.5 w-1.5 rounded-full bg-signal-green" />
         )}
       </div>
 
@@ -65,7 +66,7 @@ export function StationCard({
           {station.name}
         </span>
         <span className={`${TECHNICAL_TEXT_CLASS} truncate`}>
-          {isPlaying && <span className="mr-1.5 text-green-400">LIVE</span>}
+          {isPlaying && <span className="mr-1.5 text-signal-green">LIVE</span>}
           {station.country}
           {station.language ? ` · ${station.language.toUpperCase()}` : ""}
           {station.tags[0] ? ` · ${station.tags[0].toUpperCase()}` : ""}
@@ -82,10 +83,10 @@ export function StationCard({
             e.stopPropagation();
             onToggleFavorite(station);
           }}
-          className={`flex-shrink-0 rounded p-1 opacity-0 transition-all duration-200 group-hover:opacity-100 ${
+          className={`flex min-h-11 min-w-11 flex-shrink-0 items-center justify-center rounded transition-colors duration-200 ${
             isFavorited
-              ? "!opacity-100 text-red-400 hover:text-red-300"
-              : "text-white/30 hover:text-white/70"
+              ? "text-ember-red hover:text-ember-red-light"
+              : "text-white/40 hover:text-white/70"
           }`}
         >
           <Heart

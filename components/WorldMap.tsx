@@ -147,6 +147,10 @@ export function WorldMap({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     let lastW = 0;
     let lastH = 0;
 
@@ -183,14 +187,20 @@ export function WorldMap({
       ctx!.clearRect(0, 0, W, H);
       const t = ++frameRef.current;
 
-      // Draw stars
+      // Draw stars. Reduced motion: fixed brightness, no twinkle.
       for (const s of starsRef.current) {
-        const twinkle = 0.55 + 0.45 * Math.sin(t * s.speed + s.offset);
-        const alpha = s.baseAlpha * twinkle;
+        const alpha = prefersReducedMotion
+          ? s.baseAlpha
+          : s.baseAlpha * (0.55 + 0.45 * Math.sin(t * s.speed + s.offset));
         ctx!.beginPath();
         ctx!.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2);
         ctx!.fillStyle = `rgba(${s.color},${alpha.toFixed(2)})`;
         ctx!.fill();
+      }
+
+      if (prefersReducedMotion) {
+        // Static sky: draw once, no shooting stars, no animation loop.
+        return;
       }
 
       // Spawn a shooting star roughly every 5s at 60fps
@@ -247,11 +257,9 @@ export function WorldMap({
       el.type = "button";
       el.setAttribute("data-testid", `city-marker-${city.city}`);
       el.setAttribute("aria-label", formatCityCountry(city.city, city.countryName));
-      // Outer wrapper for pulse ring
-      el.className =
-        "relative flex h-3 w-3 items-center justify-center rounded-full marker-pulse";
-      // Inner dot
-      el.innerHTML = `<span class="block h-2 w-2 rounded-full bg-white shadow-[0_0_4px_2px_rgba(255,255,255,0.5)] transition-transform duration-200 hover:scale-150"></span>`;
+      // Invisible 44x44 hit area centered on the marker, keeping the visible pulse ring small
+      el.className = "relative flex h-11 w-11 items-center justify-center";
+      el.innerHTML = `<span class="relative flex h-3 w-3 items-center justify-center rounded-full marker-pulse"><span class="block h-2 w-2 rounded-full bg-white shadow-[0_0_4px_2px_rgba(255,255,255,0.5)] transition-transform duration-200 hover:scale-150"></span></span>`;
       el.addEventListener("click", () => onSelectCity(city));
       return new MapLibreMarker({ element: el }).setLngLat([city.lon, city.lat]).addTo(map);
     });
@@ -369,7 +377,7 @@ export function WorldMap({
           data-testid="projection-2d"
           aria-pressed={projection === "mercator"}
           onClick={() => handleSwitchProjection("mercator")}
-          className={`rounded px-3 py-1.5 text-[12px] font-mono tracking-wider transition-all duration-150 ${
+          className={`min-h-11 rounded px-3 text-[12px] font-mono tracking-wider transition-all duration-150 ${
             projection === "mercator"
               ? "bg-white/15 text-white font-semibold shadow-sm"
               : "text-white/40 hover:text-white/70"
@@ -382,7 +390,7 @@ export function WorldMap({
           data-testid="projection-3d"
           aria-pressed={projection === "globe"}
           onClick={() => handleSwitchProjection("globe")}
-          className={`rounded px-3 py-1.5 text-[12px] font-mono tracking-wider transition-all duration-150 ${
+          className={`min-h-11 rounded px-3 text-[12px] font-mono tracking-wider transition-all duration-150 ${
             projection === "globe"
               ? "bg-white/15 text-white font-semibold shadow-sm"
               : "text-white/40 hover:text-white/70"

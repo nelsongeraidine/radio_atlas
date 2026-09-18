@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -57,6 +57,7 @@ export function RadioPlayer({
   // rendered anywhere, so it doesn't need to trigger re-renders either.
   const usingFallbackRef = useRef(false);
   const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shortcutsDialogRef = useRef<HTMLDivElement | null>(null);
 
   async function handleShare() {
     if (!station || typeof window === "undefined") return;
@@ -93,6 +94,37 @@ export function RadioPlayer({
   useEffect(() => {
     return () => clearConnectTimeout();
   }, []);
+
+  // Move focus into the shortcuts modal when it opens
+  useEffect(() => {
+    if (showShortcutsHelp) {
+      shortcutsDialogRef.current?.querySelector<HTMLElement>("button")?.focus();
+    }
+  }, [showShortcutsHelp]);
+
+  function handleShortcutsDialogKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape") {
+      event.stopPropagation();
+      setShowShortcutsHelp(false);
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const dialog = shortcutsDialogRef.current;
+    if (!dialog) return;
+    const focusables = dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), input, [href], [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
 
   function tune(url: string, options?: { isFallback: boolean }) {
     const audio = audioRef.current;
@@ -247,7 +279,8 @@ export function RadioPlayer({
         // ignore
       }
     };
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [station, status, onNavigate, onToggleFavorite]);
 
   // Global keyboard shortcuts
   useKeyboardShortcuts({
@@ -266,12 +299,15 @@ export function RadioPlayer({
       {showShortcutsHelp && (
         <div
           role="dialog"
+          aria-modal="true"
           aria-label="Keyboard shortcuts"
           data-testid="shortcuts-modal"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fade-in"
           onClick={() => setShowShortcutsHelp(false)}
+          onKeyDown={handleShortcutsDialogKeyDown}
         >
           <div
+            ref={shortcutsDialogRef}
             className="w-full max-w-sm rounded-xl border border-white/10 bg-black/95 p-5 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
@@ -282,7 +318,7 @@ export function RadioPlayer({
               <button
                 type="button"
                 onClick={() => setShowShortcutsHelp(false)}
-                className="rounded p-1 text-white/40 hover:text-white"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded text-white/40 hover:text-white"
                 aria-label="Close shortcuts"
               >
                 <X size={16} />
@@ -326,7 +362,7 @@ export function RadioPlayer({
           className="flex sm:hidden items-center justify-between border-t border-white/8 bg-black/95 px-3 py-2 backdrop-blur-md"
         >
           <div className="flex min-w-0 items-center gap-2">
-            <span className="live-dot h-1.5 w-1.5 flex-shrink-0 rounded-full bg-green-400" />
+            <span className="live-dot h-1.5 w-1.5 flex-shrink-0 rounded-full bg-signal-green" />
             <p className="truncate text-xs font-medium text-white">{station.name}</p>
           </div>
           <div className="flex items-center gap-2">
@@ -335,7 +371,7 @@ export function RadioPlayer({
               data-testid="collapsed-play-toggle"
               onClick={togglePlayPause}
               aria-label={status === "tuned_in" ? "Pause" : "Play"}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-black"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-black"
             >
               {status === "tuned_in" ? <Pause size={13} /> : <Play size={13} />}
             </button>
@@ -344,7 +380,7 @@ export function RadioPlayer({
               data-testid="expand-player-btn"
               onClick={() => setIsCollapsed(false)}
               aria-label="Expand player"
-              className="rounded p-1 text-white/50 hover:text-white"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded text-white/50 hover:text-white"
             >
               <ChevronUp size={16} />
             </button>
@@ -370,7 +406,7 @@ export function RadioPlayer({
               data-testid="collapse-player-btn"
               onClick={() => setIsCollapsed(true)}
               aria-label="Collapse player"
-              className="sm:hidden flex-shrink-0 rounded p-1 text-white/40 hover:text-white"
+              className="sm:hidden flex min-h-11 min-w-11 flex-shrink-0 items-center justify-center rounded text-white/40 hover:text-white"
             >
               <ChevronDown size={16} />
             </button>
@@ -383,6 +419,7 @@ export function RadioPlayer({
                   src={station.favicon}
                   alt=""
                   aria-hidden="true"
+                  loading="lazy"
                   className="h-full w-full object-cover"
                   onError={(e) => {
                     (e.currentTarget as HTMLImageElement).style.display = "none";
@@ -417,7 +454,7 @@ export function RadioPlayer({
                 )}
                 {status === "tuned_in" && (
                   <span className="flex items-center gap-1.5">
-                    <span className="live-dot h-1.5 w-1.5 rounded-full bg-green-400" />
+                    <span className="live-dot h-1.5 w-1.5 rounded-full bg-signal-green" />
                     LIVE
                   </span>
                 )}
@@ -435,7 +472,7 @@ export function RadioPlayer({
                 onClick={() => onNavigate?.("prev")}
                 disabled={!hasPrev}
                 aria-label="Previous station"
-                className="rounded p-1.5 text-white/50 transition-colors hover:text-white disabled:opacity-20"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded text-white/50 transition-colors hover:text-white disabled:opacity-20"
               >
                 <SkipBack size={16} />
               </button>
@@ -445,7 +482,7 @@ export function RadioPlayer({
                 <button
                   type="button"
                   onClick={handleTryAgain}
-                  className={`rounded border border-white/20 px-2.5 py-1 ${TECHNICAL_TEXT_CLASS} hover:bg-white/10`}
+                  className={`flex min-h-11 items-center rounded border border-white/20 px-2.5 py-1 ${TECHNICAL_TEXT_CLASS} hover:bg-white/10`}
                 >
                   Try again
                 </button>
@@ -454,7 +491,7 @@ export function RadioPlayer({
                   type="button"
                   onClick={togglePlayPause}
                   aria-label={status === "tuned_in" ? "Pause" : "Play"}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black transition-transform hover:scale-105 active:scale-95"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-black transition-transform hover:scale-105 active:scale-95"
                 >
                   {status === "tuned_in" ? <Pause size={14} /> : <Play size={14} />}
                 </button>
@@ -466,7 +503,7 @@ export function RadioPlayer({
                 onClick={() => onNavigate?.("next")}
                 disabled={!hasNext}
                 aria-label="Next station"
-                className="rounded p-1.5 text-white/50 transition-colors hover:text-white disabled:opacity-20"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded text-white/50 transition-colors hover:text-white disabled:opacity-20"
               >
                 <SkipForward size={16} />
               </button>
@@ -478,7 +515,7 @@ export function RadioPlayer({
                 type="button"
                 onClick={toggleMute}
                 aria-label={muted ? "Unmute" : "Mute"}
-                className="text-white/40 transition-colors hover:text-white/70"
+                className="flex min-h-11 min-w-11 items-center justify-center text-white/40 transition-colors hover:text-white/70"
               >
                 {muted || volume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
               </button>
@@ -490,7 +527,7 @@ export function RadioPlayer({
                 value={muted ? 0 : volume}
                 onChange={handleVolumeChange}
                 aria-label="Volume"
-                className="volume-slider hidden w-20 sm:block"
+                className="volume-slider w-14 sm:w-20"
               />
             </div>
 
@@ -500,9 +537,9 @@ export function RadioPlayer({
                 type="button"
                 aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
                 onClick={() => onToggleFavorite(station)}
-                className={`rounded p-1.5 transition-colors duration-200 ${
+                className={`flex min-h-11 min-w-11 items-center justify-center rounded transition-colors duration-200 ${
                   isFavorited
-                    ? "text-red-400 hover:text-red-300"
+                    ? "text-ember-red hover:text-ember-red-light"
                     : "text-white/30 hover:text-white/60"
                 }`}
               >
@@ -516,7 +553,7 @@ export function RadioPlayer({
                 type="button"
                 aria-label="Share station"
                 onClick={handleShare}
-                className="rounded p-1.5 text-white/30 transition-colors hover:text-white/60"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded text-white/30 transition-colors hover:text-white/60"
               >
                 <Share2 size={15} />
               </button>
@@ -536,7 +573,7 @@ export function RadioPlayer({
               aria-label="Keyboard shortcuts"
               data-testid="shortcuts-btn"
               onClick={() => setShowShortcutsHelp((prev) => !prev)}
-              className="hidden sm:inline-flex rounded p-1.5 text-white/30 transition-colors hover:text-white/60"
+              className="hidden min-h-11 min-w-11 items-center justify-center rounded text-white/30 transition-colors hover:text-white/60 sm:inline-flex"
               title="Keyboard shortcuts (?)"
             >
               <Keyboard size={15} />

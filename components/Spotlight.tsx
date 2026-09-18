@@ -21,7 +21,7 @@ export function Spotlight({ stations, nowPlayingId, onPlay, maxCount = SPOTLIGHT
     <div className="border-b border-white/8 px-3.5 sm:px-4 pb-3 sm:pb-4 pt-2">
       <div className="flex items-center justify-between mb-2">
         <span className={TECHNICAL_TEXT_CLASS}>Spotlight</span>
-        <span className="text-[10px] text-white/30 sm:hidden">Deslize ⇄</span>
+        <span className="text-[10px] text-white/30 sm:hidden">Swipe ⇄</span>
       </div>
       <div className="flex flex-row overflow-x-auto gap-2 md:flex-col pb-1 md:pb-0 overscroll-contain">
         {featured.map((station) => {
@@ -33,7 +33,7 @@ export function Spotlight({ stations, nowPlayingId, onPlay, maxCount = SPOTLIGHT
               data-testid="spotlight-station"
               onClick={() => onPlay(station)}
               className={`flex flex-shrink-0 w-48 md:w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 border border-white/5 md:border-transparent ${
-                isPlaying ? "bg-white/10 border-white/20" : "bg-white/[0.02] md:bg-transparent hover:bg-white/5"
+                isPlaying ? "bg-white/10 border-white/20" : "bg-transparent hover:bg-white/5"
               }`}
             >
               {/* Logo */}
@@ -44,6 +44,7 @@ export function Spotlight({ stations, nowPlayingId, onPlay, maxCount = SPOTLIGHT
                     src={station.favicon}
                     alt=""
                     aria-hidden="true"
+                    loading="lazy"
                     className="h-full w-full object-cover"
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).style.display = "none";
@@ -55,7 +56,7 @@ export function Spotlight({ stations, nowPlayingId, onPlay, maxCount = SPOTLIGHT
                   </span>
                 )}
                 {isPlaying && (
-                  <span className="live-dot absolute bottom-0.5 right-0.5 h-1 w-1 rounded-full bg-green-400" />
+                  <span className="live-dot absolute bottom-0.5 right-0.5 h-1 w-1 rounded-full bg-signal-green" />
                 )}
               </div>
 

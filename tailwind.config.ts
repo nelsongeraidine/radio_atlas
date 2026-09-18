@@ -11,6 +11,14 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
+      colors: {
+        // The system's only two accent colors — see DESIGN.md "The Two-Signal
+        // Rule". Never reach for a third accent hue; every other color
+        // decision in this app is white-on-black at varying opacity.
+        "signal-green": "#4ade80", // live / currently playing
+        "ember-red": "#f87171", // favorited
+        "ember-red-light": "#fca5a5", // favorited, hover
+      },
       keyframes: {
         "fade-in": {
           "0%": { opacity: "0", transform: "translateY(8px)" },

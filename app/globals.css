@@ -90,3 +90,29 @@ input[type="range"].volume-slider::-moz-range-thumb {
   background: white;
   cursor: pointer;
 }
+
+/* ── Reduced motion ────────────────────────────────────────────
+   Decorative infinite loops (VU meter bounce, marker pulse ring,
+   live-dot blink, pulse/fade utilities) are all paired with a text
+   or color state that already communicates the same information
+   ("LIVE", "TUNING…", the station name, the dot's own presence),
+   so disabling the motion loses no state, just the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .marker-pulse,
+  .live-dot,
+  .animate-pulse,
+  .animate-fade-in {
+    animation: none !important;
+  }
+
+  /* Bars get their height only from the keyframe — disabling the animation
+     without a fallback height would collapse them to nothing while playing. */
+  .bar-1,
+  .bar-2,
+  .bar-3,
+  .bar-4,
+  .bar-5 {
+    animation: none !important;
+    height: 8px;
+  }
+}

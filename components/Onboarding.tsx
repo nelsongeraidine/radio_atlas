@@ -116,7 +116,7 @@ export function Onboarding({ onDone }: OnboardingProps) {
 
         {/* Line 1 */}
         <p
-          className={`text-3xl font-light tracking-tight text-white transition-all duration-700 ${
+          className={`text-3xl font-light tracking-tight text-white transition-all duration-700 motion-reduce:translate-y-0 motion-reduce:duration-200 ${
             phase >= 0 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           } ${phase === 1 ? "opacity-40" : ""} ${phase === 2 ? "opacity-0 -translate-y-4" : ""}`}
         >
@@ -125,7 +125,7 @@ export function Onboarding({ onDone }: OnboardingProps) {
 
         {/* Line 2 */}
         <p
-          className={`whitespace-pre-line text-3xl font-light tracking-tight text-white transition-all duration-700 ${
+          className={`whitespace-pre-line text-3xl font-light tracking-tight text-white transition-all duration-700 motion-reduce:translate-y-0 motion-reduce:duration-200 ${
             phase >= 1 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           } ${phase === 2 ? "opacity-0 -translate-y-4" : ""}`}
         >
@@ -136,7 +136,7 @@ export function Onboarding({ onDone }: OnboardingProps) {
         <button
           type="button"
           onClick={handleStart}
-          className={`mt-4 rounded-full border border-white/20 px-8 py-3 text-sm font-medium text-white transition-all duration-500 hover:bg-white/10 ${
+          className={`mt-4 rounded-full border border-white/20 px-8 py-3 text-sm font-medium text-white transition-all duration-500 motion-reduce:translate-y-0 motion-reduce:duration-200 hover:bg-white/10 ${
             phase === 2 ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 translate-y-4"
           }`}
         >

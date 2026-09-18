@@ -70,7 +70,7 @@ export function DiscoverSection({
               <div
                 key={station.id}
                 className={`group relative flex-shrink-0 w-44 overflow-hidden rounded-lg border transition-colors duration-200 ${
-                  isPlaying ? "border-white/20 bg-white/8" : "border-white/8 bg-white/3 hover:border-white/15 hover:bg-white/6"
+                  isPlaying ? "border-white/20 bg-white/8" : "border-white/8 bg-white/5 hover:border-white/15 hover:bg-white/8"
                 }`}
               >
                 <button
@@ -101,7 +101,7 @@ export function DiscoverSection({
                   <div>
                     <p className="truncate text-xs font-medium text-white">{station.name}</p>
                     <p className={`truncate ${TECHNICAL_TEXT_CLASS}`}>
-                      {isPlaying && <span className="text-green-400">LIVE · </span>}
+                      {isPlaying && <span className="text-signal-green">LIVE · </span>}
                       {station.tags[0]?.toUpperCase() ?? station.country}
                       {station.bitrate ? ` · ${formatBitrate(station.bitrate)}` : ""}
                     </p>
@@ -120,7 +120,7 @@ export function DiscoverSection({
                     onClick={() => onToggleFavorite(station)}
                     className={`rounded p-0.5 opacity-0 transition-all duration-150 group-hover:opacity-100 ${
                       isFavorited(station)
-                        ? "!opacity-100 text-red-400"
+                        ? "!opacity-100 text-ember-red"
                         : "text-white/30 hover:text-white/70"
                     }`}
                   >

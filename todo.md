@@ -67,6 +67,21 @@ Este arquivo registra o status das melhorias implementadas e as próximas ideias
   - **Cabeçalho Compacto e Botão Fechar no Mobile**: `CityOverlay` com paddings e tipografia responsivos (`p-3.5 sm:p-6`) e barra superior exclusiva para mobile com indicador pulsante e botão "Fechar" para recolher o painel e voltar ao mapa com um único toque;
   - **Otimização de Performance & Bateria**: handlers `handleSelectCity` e `handleSelectStation` estabilizados com `useCallback` (evitando recriações desnecessárias dos marcadores do MapLibre) e draw loop do canvas de estrelas pausado automaticamente quando a tela/aba está em background via `document.hidden`.
 
+### 9. Auditoria de Acessibilidade, Performance e Design System (skill `impeccable`) — ✅ Concluído
+- **Processo**: `$impeccable audit` (score inicial 11/20) → correções → `$impeccable polish` → re-audit (15/20) → `$impeccable document` + `$impeccable extract`.
+- **Acessibilidade**:
+  - Touch targets ≥44px em todos os controles interativos: player (play/pause, prev/next, favoritar, mute, share, shortcuts, collapse/expand), marcador de cidade e switcher 2D/3D do mapa, ícones do Command Palette;
+  - Botão de favoritar visível em touch (`StationCard.tsx`, `GlobalSearch.tsx`) — removido o padrão `opacity-0 group-hover:opacity-100` que o escondia em dispositivos touch;
+  - `prefers-reduced-motion` respeitado em todas as animações decorativas (`globals.css`, starfield do `WorldMap.tsx`, transições do `Onboarding.tsx`), preservando o estado comunicado (ex.: barras do VU meter recebem altura fixa em vez de colapsar a zero);
+  - Semântica de diálogo completa (`role="dialog"`, `aria-modal`, focus trap por Tab, Escape) no Command Palette (`GlobalSearch.tsx`) e no modal de atalhos de teclado (`RadioPlayer.tsx`);
+  - `<h1>` acessível na página Explore (`app/page.tsx`).
+- **Performance**: `loading="lazy"` em favicons de estação; dependency array corrigido no `useEffect` de handlers do MediaSession (rodava em todo render).
+- **Responsividade**: slider de volume volta a aparecer no mobile (antes sumia abaixo de `sm`).
+- **Qualidade**: string PT-BR vazada corrigida para inglês (`Spotlight.tsx`); comentário incorreto sobre GPU compositing corrigido (`AudioVisualizer.tsx`); classe `group` órfã removida.
+- **Design system**: `DESIGN.md` criado na raiz (formato spec DESIGN.md) documentando paleta, tipografia, layout, elevação, formas e componentes reais do projeto; sidecar `.impeccable/design.json` com tonal ramps, componentes canônicos e narrativa. Tokens `signal-green`/`ember-red`/`ember-red-light` adicionados ao `tailwind.config.ts` substituindo `green-400`/`red-400`/`red-300` hard-coded (9 ocorrências, mesmo hex, zero mudança visual); 5 valores de opacidade arbitrários de uso único (drift confirmado) normalizados para a rampa `white/5`/`white/8` já dominante.
+- **Deliberadamente fora de escopo**: consolidação da escala mais ampla de opacidade de texto (`white/20`–`white/90`, usada em pares dim→hover) — requer QA visual com a UI rodando, não uma decisão para tomar às cegas; virtualização de listas longas de estação (baixo risco hoje).
+- **Validação**: `tsc --noEmit`, `npm run lint` e `npm test` (104/104) limpos a cada rodada de mudanças.
+
 ---
 
 ## Backlog Futuro (A Definir)
@@ -86,3 +101,8 @@ Este arquivo registra o status das melhorias implementadas e as próximas ideias
 - **Descrição**: Filtrar as estações listadas pelo idioma falado/transmitido, além do filtro de bitrate já existente.
 - **UX sugerida**: Dropdown ou chips de idioma no topo da `StationList`, com contagem dinâmica.
 - **Arquivos envolvidos**: `components/StationList.tsx`, `components/CityOverlay.tsx`.
+
+### 🎨 Consolidação da Escala de Opacidade de Texto em Tokens Nomeados
+- **Descrição**: A escala `white/20`–`white/90` usada para hierarquia de texto (20/30/40/50/60/70/80/90) segue sem tokens nomeados no Tailwind — ficou deliberadamente fora do escopo da auditoria de design system por depender de QA visual com a UI rodando (vários pares dim→hover dependem de degraus específicos).
+- **Como abordar**: Rodar a UI localmente, decidir quais degraus são realmente distintos vs. drift, e só então promover a `tailwind.config.ts`.
+- **Arquivos envolvidos**: praticamente todos os componentes visuais; ver `DESIGN.md` seção Colors.

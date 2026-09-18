@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-18T00:00:00.000Z",
+  "title": "Design System: Radio Atlas",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink (canvas)",
+        "canonical": "#000000",
+        "tonalRamp": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#000000"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper (opacity-layered ink)",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "rgba(255,255,255,0.05)",
+          "rgba(255,255,255,0.08)",
+          "rgba(255,255,255,0.10)",
+          "rgba(255,255,255,0.20)",
+          "rgba(255,255,255,0.30)",
+          "rgba(255,255,255,0.50)",
+          "rgba(255,255,255,0.70)",
+          "rgba(255,255,255,0.90)"
+        ]
+      },
+      "signal-green": {
+        "role": "primary",
+        "displayName": "Signal Green (live state)",
+        "canonical": "oklch(84% 0.19 148)",
+        "tonalRamp": ["#052e16", "#14532d", "#166534", "#15803d", "#16a34a", "#22c55e", "#4ade80", "#86efac"]
+      },
+      "ember-red": {
+        "role": "secondary",
+        "displayName": "Ember Red (favorited state)",
+        "canonical": "oklch(71% 0.17 15)",
+        "tonalRamp": ["#450a0a", "#7f1d1d", "#991b1b", "#dc2626", "#ef4444", "#f87171", "#fca5a5", "#fecaca"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page-level headlines only (\"Discover.\", \"Library.\", onboarding lines). One per page, at most." },
+      "body": { "displayName": "Body", "purpose": "Station names, primary list content, readable prose." },
+      "label": { "displayName": "Instrument Label", "purpose": "TECHNICAL_TEXT_CLASS voice: all metadata, status, and technical read-outs. Uppercase, tracked, small, white/50." },
+      "label-micro": { "displayName": "Instrument Label (fine print)", "purpose": "Same voice at 9-11px: kbd shortcut hints, tight in-row badges, the mobile swipe hint." }
+    },
+    "shadows": [
+      { "name": "floating-overlay", "value": "0 25px 50px -12px rgba(0,0,0,0.5)", "purpose": "Command palette and keyboard-shortcuts modal — content that interrupts the whole screen." },
+      { "name": "docked-control", "value": "0 10px 15px -3px rgba(0,0,0,0.3)", "purpose": "Small persistent controls above the map (projection switcher)." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default hover/state transition easing (Tailwind's default ease)." },
+      { "name": "fade-in", "value": "opacity 0→1, translateY(8px)→0, 0.3s ease-out", "purpose": "Entrance for overlays (search palette, shortcuts modal)." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Play Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one filled control in the system — solid white circle, black icon, used for play/pause.",
+      "html": "<button class=\"ds-btn-primary\" aria-label=\"Play\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M8 5v14l11-7z\"/></svg></button>",
+      "css": ".ds-btn-primary { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 9999px; background: #ffffff; color: #000000; border: none; transition: transform 0.2s cubic-bezier(0.4,0,0.2,1); } .ds-btn-primary:hover { transform: scale(1.05); } .ds-btn-primary:active { transform: scale(0.95); } .ds-btn-primary:focus-visible { outline: 2px solid rgba(255,255,255,0.6); outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Icon Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Transparent icon-only control (prev/next, favorite, share, mute) — starts dim, brightens on hover/focus. Always a 44px hit area regardless of icon size.",
+      "html": "<button class=\"ds-btn-ghost\" aria-label=\"Skip\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M6 6h2v12H6zm3.5 6l8.5 6V6z\"/></svg></button>",
+      "css": ".ds-btn-ghost { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 4px; background: transparent; color: rgba(255,255,255,0.5); border: none; transition: color 0.2s cubic-bezier(0.4,0,0.2,1); } .ds-btn-ghost:hover { color: #ffffff; } .ds-btn-ghost:focus-visible { outline: 2px solid rgba(255,255,255,0.6); outline-offset: 2px; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Borderless field inside the command-palette dialog; the dialog's own border is the field's visual boundary.",
+      "html": "<input class=\"ds-input-search\" type=\"text\" placeholder=\"Find a frequency…\" />",
+      "css": ".ds-input-search { width: 100%; background: transparent; border: none; outline: none; color: #ffffff; font-size: 1rem; } .ds-input-search::placeholder { color: rgba(255,255,255,0.25); }"
+    },
+    {
+      "name": "Station Row",
+      "kind": "card",
+      "refersTo": "station-row",
+      "description": "The primary list item: logo, name, technical metadata line, favorite action. Flat, hairline-divided, brightens on hover/active.",
+      "html": "<div class=\"ds-station-row\"><div class=\"ds-station-logo\"></div><div class=\"ds-station-info\"><div class=\"ds-station-name\">Radio Nova</div><div class=\"ds-station-meta\">FRANCE · POP · 128 KBPS</div></div></div>",
+      "css": ".ds-station-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s cubic-bezier(0.4,0,0.2,1); } .ds-station-row:hover { background: rgba(255,255,255,0.05); } .ds-station-logo { width: 36px; height: 36px; border-radius: 4px; background: rgba(255,255,255,0.05); flex-shrink: 0; } .ds-station-name { font-size: 0.875rem; font-weight: 500; color: rgba(255,255,255,0.9); } .ds-station-meta { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.5); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Night Signal Room",
+    "overview": "Radio Atlas reads like a late-night ham radio operator's console: a dark globe under real stars, a scanning dial, status text that speaks in operator shorthand (\"TUNING…\", \"LIVE\", \"SIGNAL LOST\"). The interface never competes with the thing it exists to serve, which is the station itself and the world it comes from. Everything is built from one surface (pure black) and one ink (white, at varying opacity) — there is no secondary neutral palette, because the product's only real \"color\" decisions are the two signal accents: green for live, red for kept/favorited. Every other tonal step is the same white at a different strength, which is what makes the two accents read as decisions rather than decoration.\n\nConfirmed visual rejections: no card-and-shadow \"app\" look, no gradient buttons, no colorful iconography. The product's visual identity is restraint plus one moment of cosmic spectacle (the globe, stars, moon) that earns its place because it's the one surface where the product's actual subject — a spinning world full of stations — gets to be looked at directly.",
+    "keyCharacteristics": [
+      "Pure black canvas, white ink at variable opacity as the entire neutral system",
+      "Two accent colors only, each tied to a specific state (green = live, red = favorited), never decorative",
+      "Uppercase, tracked-out, small monospace-feeling technical labels for all metadata and status",
+      "Flat by default; depth comes from opacity layering and backdrop-blur, not shadows",
+      "One deliberate moment of visual richness (the 3D globe/starfield), everywhere else stays quiet"
+    ],
+    "rules": [
+      { "name": "The Two-Signal Rule", "body": "Color exists for exactly two states: live (green) and favorited (red). If a new element needs a third accent color, that's a sign it needs a state, not a paint job.", "section": "colors" },
+      { "name": "The One Ink Rule", "body": "Never introduce a second neutral hue (no cool grays, no warm off-whites). Hierarchy is opacity, not palette.", "section": "colors" },
+      { "name": "The Instrument Panel Rule", "body": "Any text describing state, metadata, or technical facts is uppercase, tracked, small, and white/50. Never style this content like body copy.", "section": "typography" },
+      { "name": "The Flush-Unless-Floating Rule", "body": "In-flow elements get no shadow. Shadow is reserved for things that visually leave the page (modals, popovers).", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use TECHNICAL_TEXT_CLASS from lib/format.ts for any metadata, status, or technical read-out text.",
+      "Do keep every icon-only interactive control at a real ≥44px hit area, independent of the icon's visual size.",
+      "Do respect prefers-reduced-motion for any new decorative animation: keep the state it communicates, drop only the movement.",
+      "Do reserve green and red exclusively for \"live\" and \"favorited\" states respectively."
+    ],
+    "donts": [
+      "Don't introduce a second neutral hue. Hierarchy is opacity on one white, always.",
+      "Don't add box-shadow to in-flow elements. Shadow is reserved for content that floats above the whole screen.",
+      "Don't hide an interactive control behind opacity-0/hover-only reveal with no touch-reachable affordance.",
+      "Don't use a third accent color decoratively."
+    ]
+  }
+}

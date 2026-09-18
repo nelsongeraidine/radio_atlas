@@ -65,7 +65,7 @@ export function GlobalPlayer() {
       {/* Attribution footer */}
       <footer
         data-testid="author-attribution"
-        className="flex items-center justify-between border-t border-white/[0.06] bg-black/95 px-3 sm:px-5 py-1 text-[11px] text-white/40 backdrop-blur-md"
+        className="flex items-center justify-between border-t border-white/8 bg-black/95 px-3 sm:px-5 py-1 text-[11px] text-white/40 backdrop-blur-md"
       >
         <div className="flex items-center gap-1.5">
           <span className="text-white/30">feito por</span>

@@ -171,9 +171,9 @@ function ExploreContent() {
         <header className="flex items-center justify-between border-b border-white/8 px-4 sm:px-6 py-3">
           {/* Brand + Nav */}
           <div className="flex items-center gap-4 sm:gap-8">
-            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-white">
+            <h1 className="text-sm font-semibold uppercase tracking-[0.2em] text-white">
               Radio Atlas
-            </span>
+            </h1>
             <nav className="flex items-center gap-4 sm:gap-6">
               <span className={`${TECHNICAL_TEXT_CLASS} border-b border-white pb-0.5 text-white`}>
                 Explore
@@ -283,7 +283,7 @@ function ExploreContent() {
             ].join(" ")}>
 
               {/* Mobile top bar with quick-close action */}
-              <div className="flex items-center justify-between border-b border-white/10 px-3.5 py-2 md:hidden bg-white/[0.04]">
+              <div className="flex items-center justify-between border-b border-white/10 px-3.5 py-2 md:hidden bg-white/5">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="h-2 w-2 flex-shrink-0 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="text-[11px] font-medium uppercase tracking-wider text-white/70">
